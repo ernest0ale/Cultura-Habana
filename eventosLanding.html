@@ -3,38 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cultura Habana | Eventos culturales en La Habana</title>
+    <title>Todos los eventos | Cultura Habana</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .landing-hero {
-            text-align: center;
-            padding: 3rem 2rem;
-            background: linear-gradient(135deg, rgba(2,90,138,0.1) 0%, rgba(2,90,138,0.05) 100%);
+        .eventos-landing-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
         }
-        .landing-hero h1 {
-            font-size: 2.5rem;
+        .eventos-landing-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 0.75rem;
+        }
+        .eventos-landing-header h1 {
+            font-size: 1.8rem;
             color: var(--color-text-primary);
-            margin-bottom: 1rem;
-        }
-        .landing-hero p {
-            font-size: 1.1rem;
-            color: var(--color-text-secondary);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .section-title {
-            font-size: 1.5rem;
-            margin: 2rem 1rem 1rem;
-            color: var(--color-text-primary);
-            border-left: 4px solid var(--color-primary);
-            padding-left: 1rem;
         }
         .eventos-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 1.5rem;
-            padding: 0 1rem 2rem;
         }
         .evento-card {
             background: var(--color-surface);
@@ -50,7 +45,7 @@
         }
         .evento-card img {
             width: 100%;
-            height: 180px;
+            height: 160px;
             object-fit: cover;
         }
         .evento-info {
@@ -74,26 +69,38 @@
             font-size: 0.65rem;
             margin-top: 0.5rem;
         }
-        .ver-todos-btn {
-            display: inline-block;
-            padding: 0.6rem 1.8rem;
+        .paginacion {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            color: var(--color-text-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .page-btn.active {
             background: var(--color-primary);
             color: white;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.3s ease;
+            border-color: var(--color-primary);
         }
-        .ver-todos-btn:hover {
-            transform: translateY(-2px);
+        .page-btn:hover:not(.active) {
+            background: var(--color-bg);
         }
         @media (max-width: 600px) {
-            .landing-hero h1 { font-size: 1.8rem; }
-            .eventos-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+            .eventos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            }
         }
     </style>
 </head>
-<body data-page="index">
+<body data-page="eventosLanding">
 
     <div id="landingSidebarOverlay" class="landing-sidebar-overlay"></div>
     
@@ -140,12 +147,12 @@
             <button id="landingMenuToggle" class="landing-menu-toggle">
                 <img src="resources/icons_light/menu.png" alt="menú">
             </button>
-                <img class="logo-light" src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+            <img src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
             <span>Cultura Habana</span>
         </div>
         <div class="landing-nav-links">
-            <a href="index.html" class="landing-nav-link active">
-                <img class="home-light" src="resources/icons_light/home-alt.png" alt="inicio"> Inicio
+            <a href="index.html" class="landing-nav-link">
+                <img src="resources/icons_light/home-alt.png" alt="inicio"> Inicio
             </a>
             <div id="landingCategoriesDropdown" class="landing-dropdown">
                 <button id="landingCategoriesBtn" class="landing-dropdown-btn">
@@ -186,18 +193,14 @@
         </div>
     </nav>
 
-    <div class="landing-hero">
-        <h1>Descubre la cultura en La Habana</h1>
-        <p>Conciertos, teatro, cine, exposiciones y mucho más.</p>
-        <p>Encuentra los mejores eventos en tu ciudad.</p>
-    </div>
-
-    <h2 class="section-title">Próximos eventos destacados</h2>
-    <div id="eventos-destacados" class="eventos-grid">
-        <div class="loading-spinner">Cargando eventos...</div>
-    </div>
-    <div style="text-align: center; padding: 2rem;">
-        <a href="eventosLanding.html" class="ver-todos-btn">Ver todos los eventos →</a>
+    <div class="eventos-landing-container">
+        <div class="eventos-landing-header">
+            <h1>Todos los eventos</h1>
+        </div>
+        <div id="eventos-grid" class="eventos-grid">
+            <div class="loading-spinner">Cargando eventos...</div>
+        </div>
+        <div id="paginacion" class="paginacion"></div>
     </div>
 
     <footer class="footer-landing">
@@ -256,17 +259,27 @@
     <script src="data.js"></script>
     <script src="landing-common.js"></script>
     <script>
-        // Cargar eventos destacados
-        function cargarEventosDestacados() {
-            const container = document.getElementById('eventos-destacados');
-            const eventos = getEventosFuturos();
+        let currentPage = 1;
+        const eventsPerPage = 12;
+        let allEvents = [];
+        
+        function cargarEventos() {
+            allEvents = getEventosFuturos();
+            renderizarPagina();
+        }
+        
+        function renderizarPagina() {
+            const start = (currentPage - 1) * eventsPerPage;
+            const end = start + eventsPerPage;
+            const eventosPagina = allEvents.slice(start, end);
             
-            if (!eventos || eventos.length === 0) {
-                container.innerHTML = '<p>No hay eventos próximos</p>';
+            const container = document.getElementById('eventos-grid');
+            if (eventosPagina.length === 0) {
+                container.innerHTML = '<div class="empty-eventos">No hay eventos disponibles</div>';
                 return;
             }
             
-            container.innerHTML = eventos.slice(0, 8).map(evento => `
+            container.innerHTML = eventosPagina.map(evento => `
                 <div class="evento-card" onclick="window.location.href='detallesEventoLanding.html?id=${evento.id}'">
                     <img src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/300/180'">
                     <div class="evento-info">
@@ -276,9 +289,35 @@
                     </div>
                 </div>
             `).join('');
+            
+            renderizarPaginacion();
         }
         
-        cargarEventosDestacados();
+        function renderizarPaginacion() {
+            const totalPages = Math.ceil(allEvents.length / eventsPerPage);
+            const container = document.getElementById('paginacion');
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+            }
+            container.innerHTML = html;
+            
+            document.querySelectorAll('.page-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentPage = parseInt(btn.getAttribute('data-page'));
+                    renderizarPagina();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+        }
+        
+        cargarEventos();
     </script>
 </body>
 </html>

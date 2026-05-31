@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Categoría | Cultura Habana</title>
+    <title>Eventos Guardados | Cultura Habana</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -44,7 +44,7 @@
                     <span id="notifCounter" class="notif-counter" style="display: none;">0</span>
                 </button>
                 <div id="notificationsPanel" class="notifications-panel">
-                    <div class="notifications-header">📢 Notificaciones</div>
+                    <div class="notifications-header">Notificaciones</div>
                     <div class="notifications-list"></div>
                 </div>
             </div>
@@ -95,11 +95,10 @@
 
     <!-- Contenido principal -->
     <div class="main-content">
-        <div class="categoria-container">
-            <!-- Encabezado de la categoría -->
-            <div class="categoria-header">
-                <h1 id="categoria-titulo">Conciertos</h1>
-                <div class="categoria-orden">
+        <div class="guardados-container">
+            <div class="resultados-header">
+                <h3>Eventos guardados</h3>
+                <div class="resultados-orden">
                     <label>Ordenar por:</label>
                     <select id="orden-eventos">
                         <option value="asc">Más antiguos primero</option>
@@ -107,10 +106,8 @@
                     </select>
                 </div>
             </div>
-            
-            <!-- Lista de eventos de la categoría en formato horizontal -->
-            <div id="categoria-lista" class="lista-horizontal">
-                <div class="loading-spinner">Cargando eventos...</div>
+            <div id="guardados-lista" class="resultados-scroll">
+                <div class="loading-spinner">Cargando eventos guardados...</div>
             </div>
         </div>
     </div>
@@ -118,34 +115,22 @@
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-columns">
-                <!-- Columna 1: Logo + descripción -->
                 <div class="footer-col-1">
                     <div class="footer-logo">
                         <img src="resources/aguacero_cuba_darklogo_trasnparente.png" alt="Cultura Habana">
                         <span>Cultura Habana</span>
                     </div>
                     <p class="footer-description">
-                        Los mejores planes en La Habana se encuentran bajo este Aguacero.
-                        <br><br>
+                        Los mejores planes en La Habana se encuentran bajo este Aguacero.<br><br>
                         Deja la sombrilla en casa, ¡no te pierdas ni una gota de cultura!
                     </p>
                     <div class="footer-social">
-                        <a href="https://www.facebook.com/aguacerocuba" class="social-icon-link" target="_blank">
-                            <img src="resources/icons_light/facebook.png" alt="Facebook">
-                        </a>
-                        <a href="https://www.instagram.com/aguacero_cuba/" class="social-icon-link" target="_blank">
-                            <img src="resources/icons_light/instagram.png" alt="Instagram">
-                        </a>
-                        <a href="https://t.me/Aguacero" class="social-icon-link" target="_blank">
-                            <img src="resources/icons_light/telegram.png" alt="Telegram">
-                        </a>
-                        <a href="https://www.whatsapp.com/channel/0029VbApHoQKmCPX3VynJs2n" class="social-icon-link" target="_blank">
-                            <img src="resources/icons_light/whatsapp.png" alt="WhatsApp">
-                        </a>
+                        <a href="https://www.facebook.com/aguacerocuba" class="social-icon-link" target="_blank"><img src="resources/icons_light/facebook.png" alt="Facebook"></a>
+                        <a href="https://www.instagram.com/aguacero_cuba/" class="social-icon-link" target="_blank"><img src="resources/icons_light/instagram.png" alt="Instagram"></a>
+                        <a href="https://t.me/Aguacero" class="social-icon-link" target="_blank"><img src="resources/icons_light/telegram.png" alt="Telegram"></a>
+                        <a href="https://www.whatsapp.com/channel/0029VbApHoQKmCPX3VynJs2n" class="social-icon-link" target="_blank"><img src="resources/icons_light/whatsapp.png" alt="WhatsApp"></a>
                     </div>
                 </div>
-                
-                <!-- Columna 2: Explorar -->
                 <div class="footer-col-2">
                     <h3>EXPLORAR</h3>
                     <ul class="footer-links">
@@ -155,8 +140,6 @@
                         <li id="footerPromocionLink" style="display: none;"><a href="promocion.html">Promocionar</a></li>
                     </ul>
                 </div>
-                
-                <!-- Columna 3: Contacto -->
                 <div class="footer-col-3">
                     <h3>CONTACTO</h3>
                     <div class="contact-item"><strong>Tel:</strong> <a href="tel:+5351234567">+53 5123 4567</a></div>
@@ -164,7 +147,6 @@
                     <div class="contact-item"><strong>Ub:</strong> <span>La Habana, Cuba</span></div>
                 </div>
             </div>
-            
             <div class="footer-bottom">
                 <p class="footer-copyright">&copy; 2025 Cultura Habana. Todos los derechos reservados.</p>
                 <div class="footer-legal">
@@ -180,76 +162,94 @@
     <script src="notifications.js"></script>
     <script src="script.js"></script>
     <script>
-        // Aplicar color primario del usuario logueado (si existe)
-        if (typeof aplicarColorPrimarioUsuario === 'function') {
-            aplicarColorPrimarioUsuario();
-        }
-        // ==================== OBTENER CATEGORÍA DE LA URL ====================
-        const urlParams = new URLSearchParams(window.location.search);
-        let categoriaActual = urlParams.get('nombre') || '';
-        categoriaActual = decodeURIComponent(categoriaActual);
-        
-        if (!categoriaActual) {
-            window.location.href = 'inicio.html';
-        }
-        
-        // Actualizar título y encabezado
-        document.title = `${categoriaActual} | Cultura Habana`;
-        const tituloElemento = document.getElementById('categoria-titulo');
-        if (tituloElemento) {
-            tituloElemento.textContent = categoriaActual;
-        }
-        
-        // ==================== RENDERIZAR EVENTOS EN TARJETAS HORIZONTALES ====================
-        function renderizarEventosPorCategoria() {
-            let eventos = getEventos();
-            eventos = eventos.filter(evento => evento.categoria === categoriaActual);
+        function renderizarGuardados() {
+            const usuario = getUsuarioActual();
+            const container = document.getElementById('guardados-lista');
+            const ordenSelect = document.getElementById('orden-eventos');
             
-            const orden = document.getElementById('orden-eventos')?.value || 'asc';
-            eventos.sort((a, b) => {
-                const fechaA = new Date(a.fechaInicio);
-                const fechaB = new Date(b.fechaInicio);
-                return orden === 'asc' ? fechaA - fechaB : fechaB - fechaA;
-            });
-            
-            const container = document.getElementById('categoria-lista');
-            if (!container) return;
-            
-            if (eventos.length === 0) {
+            if (!usuario) {
                 container.innerHTML = `
-                    <div class="no-eventos-categoria">
-                        <p>No hay eventos disponibles en la categoría "${categoriaActual}"</p>
-                        <a href="inicio.html" class="btn-volver">Explorar otros eventos</a>
+                    <div class="empty-guardados">
+                        <p>Inicia sesión para ver tus eventos guardados</p>
+                        <a href="login.html" class="btn-primary">Iniciar sesión</a>
                     </div>
                 `;
                 return;
             }
             
-            // Mismo estilo que inicio: tarjetas horizontales
-            container.innerHTML = eventos.map(evento => `
-                <div class="evento-card-inicio" onclick="window.location.href='detallesEvento.html?id=${evento.id}'">
-                    <img class="evento-poster" src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/400/300'">
-                    <div class="evento-info-inicio">
-                        <h4>${evento.nombre.length > 30 ? evento.nombre.substring(0,27)+'...' : evento.nombre}</h4>
-                        <p class="fecha">${formatFechaShort(evento.fechaInicio)} ${evento.horaInicio ? '· ' + evento.horaInicio.substring(0,5) : ''}</p>
+            let eventosGuardados = getEventosGuardados();
+            const orden = ordenSelect?.value || 'asc';
+            
+            eventosGuardados.sort((a, b) => {
+                const fechaA = new Date(a.fechaInicio);
+                const fechaB = new Date(b.fechaInicio);
+                return orden === 'asc' ? fechaA - fechaB : fechaB - fechaA;
+            });
+            
+            if (eventosGuardados.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-guardados">
+                        <p>No tienes eventos guardados</p>
+                        <p>Explora eventos y haz clic en "Guardar" para recibir recordatorios</p>
+                        <a href="inicio.html" class="btn-primary">Explorar eventos</a>
                     </div>
-                </div>
-            `).join('');
+                `;
+                return;
+            }
+            
+            container.innerHTML = eventosGuardados.map(evento => {
+                const menores = getEtiquetaAptoMenores(evento.aptoMenores);
+                const aire = getEtiquetaAireLibre(evento.aireLibre);
+                return `
+                    <div class="evento-resultado-item" onclick="window.location.href='detallesEvento.html?id=${evento.id}'">
+                        <img class="evento-resultado-img" src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/60/60'">
+                        <div class="evento-resultado-info">
+                            <h4>${evento.nombre}</h4>
+                            <p class="fecha">${formatFechaShort(evento.fechaInicio)} ${evento.horaInicio ? '· ' + evento.horaInicio.substring(0,5) : ''}</p>
+                            <span class="categoria-badge">${evento.categoria}</span>
+                            <span class="${menores.clase}">${menores.texto}</span>
+                            <span class="${aire.clase}">${aire.texto}</span>
+                            <button class="btn-eliminar-guardado" data-id="${evento.id}" onclick="event.stopPropagation(); eliminarDeGuardados('${evento.id}')">
+                                Eliminar de guardados
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
         
-        // Event listener para el orden
-        document.getElementById('orden-eventos')?.addEventListener('change', renderizarEventosPorCategoria);
-        
-        // Inicializar
-        renderizarEventosPorCategoria();
-
-        // Mostrar enlace de promocionar en footer solo para administradores
-        const usuarioFooter = getUsuarioActual();
-        if (usuarioFooter && esAdministrador(usuarioFooter)) {
-            const footerPromo = document.getElementById('footerPromocionLink');
-            if (footerPromo) footerPromo.style.display = 'list-item';
+        function eliminarDeGuardados(eventoId) {
+            const usuario = getUsuarioActual();
+            if (usuario && eliminarRecordatorio(usuario.id, eventoId)) {
+                renderizarGuardados();
+                mostrarToast('✅ Evento eliminado de tus guardados');
+            } else {
+                mostrarToast('❌ Error al eliminar el evento', 'error');
+            }
         }
-
+        
+        function mostrarToast(mensaje, tipo = 'success') {
+            const toast = document.createElement('div');
+            toast.textContent = mensaje;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${tipo === 'error' ? '#e74c3c' : '#27ae60'};
+                color: white;
+                padding: 10px 20px;
+                border-radius: 30px;
+                z-index: 10000;
+                animation: fadeOut 3s ease forwards;
+                font-size: 0.9rem;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        document.getElementById('orden-eventos')?.addEventListener('change', renderizarGuardados);
+        
         function actualizarMenuGuardados() {
             const usuario = getUsuarioActual();
             const menuGuardados = document.getElementById('menuGuardados');
@@ -257,113 +257,51 @@
                 menuGuardados.style.display = usuario ? 'block' : 'none';
             }
         }
+        
+        renderizarGuardados();
         actualizarMenuGuardados();
     </script>
     
     <style>
-        /* ========== ESTILOS PARA LA PÁGINA DE CATEGORÍA ========== */
-        .categoria-container {
-            max-width: 100%;
+        .guardados-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
         }
-        
-        .categoria-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid var(--color-border);
-        }
-        
-        .categoria-header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--color-text-primary);
-        }
-        
-        .categoria-orden {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .categoria-orden label {
-            font-size: 0.9rem;
-            color: var(--color-text-secondary);
-        }
-        
-        .categoria-orden select {
-            padding: 0.4rem 0.8rem;
-            border: 1px solid var(--color-border);
-            border-radius: 8px;
-            background: var(--color-surface);
-            color: var(--color-text-primary);
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-        
-        /* Reutilizamos .lista-horizontal y .evento-card-inicio de styles.css */
-        #categoria-lista {
-            display: flex;
-            overflow-x: auto;
-            gap: 1rem;
-            padding: 0.5rem 0.5rem 1rem;
-            scroll-behavior: smooth;
-        }
-        
-        #categoria-lista::-webkit-scrollbar {
-            height: 6px;
-        }
-        
-        #categoria-lista::-webkit-scrollbar-track {
-            background: var(--color-border);
-            border-radius: 10px;
-        }
-        
-        #categoria-lista::-webkit-scrollbar-thumb {
-            background: rgb(2, 90, 138);
-            border-radius: 10px;
-        }
-        
-        .no-eventos-categoria {
+        .empty-guardados {
             text-align: center;
             padding: 3rem;
             background: var(--color-surface);
             border-radius: 16px;
-            color: var(--color-text-secondary);
-            width: 100%;
         }
-        
-        .no-eventos-categoria p {
-            margin-bottom: 1rem;
-        }
-        
-        .no-eventos-categoria .btn-volver {
+        .empty-guardados .btn-primary {
             display: inline-block;
-            padding: 0.5rem 1.2rem;
-            background: rgb(2, 90, 138);
+            margin-top: 1rem;
+            padding: 0.6rem 1.5rem;
+            background: var(--color-primary);
             color: white;
             border-radius: 30px;
             text-decoration: none;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
         }
-        
-        .no-eventos-categoria .btn-volver:hover {
-            background: rgb(2, 110, 168);
-            transform: translateY(-2px);
+        .btn-eliminar-guardado {
+            margin-top: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
         }
-        
-        @media (max-width: 600px) {
-            .categoria-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .categoria-header h1 {
-                font-size: 1.2rem;
-            }
+        .btn-eliminar-guardado:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            70% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(10px); visibility: hidden; }
         }
     </style>
 </body>

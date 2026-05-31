@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de eventos | Cultura Habana</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <style>
+        .mapa-landing-container {
+            width: 100%;
+            height: calc(100vh - 80px);
+            position: relative;
+        }
+        #mapa-principal {
+            height: 100%;
+            width: 100%;
+        }
+        .map-filters-bar {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            background: var(--color-surface);
+            border-radius: 20px;
+            padding: 0.8rem 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            background: rgba(var(--color-surface-rgb, 255,255,255), 0.95);
+        }
+        body.dark-mode .map-filters-bar {
+            background: rgba(30,34,39,0.95);
+        }
+        .filter-category-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgb(2, 90, 138);
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+        body.dark-mode .filter-category-label {
+            color: white;
+        }
+        
+        /* ========== CORRECCIÓN BOTONES ZOOM MAPA EN MODO OSCURO ========== */
+        body.dark-mode .leaflet-control-zoom-in,
+        body.dark-mode .leaflet-control-zoom-out {
+            background-color: var(--color-surface) !important;
+            color: var(--color-text-primary) !important;
+            border: 1px solid var(--color-border) !important;
+        }
+        
+        body.dark-mode .leaflet-control-zoom-in:hover,
+        body.dark-mode .leaflet-control-zoom-out:hover {
+            background-color: var(--color-bg) !important;
+        }
+        
+        body.dark-mode .leaflet-control-zoom-in span,
+        body.dark-mode .leaflet-control-zoom-out span {
+            color: var(--color-text-primary) !important;
+        }
+        
+        body.dark-mode .leaflet-layer,
+        body.dark-mode .leaflet-control-attribution {
+            filter: hue-rotate(180deg) brightness(200%) contrast(100%);
+        }
+        
+        body.dark-mode .leaflet-control-attribution {
+            background-color: rgb(98, 106, 108);
+            color: white;
+        }
+        
+        body.dark-mode .leaflet-control-attribution a {
+            color: #ffffff;
+        }
+        
+        body.dark-mode .leaflet-popup-content-wrapper {
+            background-color: var(--color-surface);
+            color: var(--color-text-primary);
+        }
+        
+        body.dark-mode .leaflet-popup-tip {
+            background-color: var(--color-surface);
+        }
+        
+        .leaflet-container {
+            background-color: #e0e0e0;
+        }
+        
+        body.dark-mode .leaflet-container {
+            background-color: #1a1a1a;
+        }
+        
+        .map-categorias {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .map-category-chip {
+            padding: 0.3rem 0.8rem;
+            background: var(--color-bg);
+            border-radius: 40px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid var(--color-border);
+            color: var(--color-text-primary);
+            white-space: nowrap;
+        }
+        .map-category-chip.active {
+            background: rgb(2,90,138);
+            color: white;
+            border-color: rgb(2,90,138);
+        }
+        .filter-divider {
+            height: 1px;
+            background: var(--color-text-primary);
+            margin: 0.75rem 0;
+        }
+        .filter-features-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .filter-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            flex: 1;
+        }
+        .filter-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--color-text-primary);
+            padding: 0.3rem 0.8rem;
+            background: var(--color-bg);
+            border-radius: 40px;
+            transition: all 0.2s ease;
+            border: 1px solid var(--color-border);
+        }
+        .filter-checkbox-item:hover {
+            border-color: rgb(2, 90, 138);
+        }
+        .filter-checkbox-item input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+        @media (max-width: 700px) {
+            .filter-features-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .filter-checkboxes {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .filter-checkbox-item {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+        @media (min-width: 701px) {
+            .map-filters-bar {
+                min-width: 450px;
+                max-width: 600px;
+                margin-left: 23rem;
+            }
+        }
+    </style>
+</head>
+<body data-page="mapaLanding">
+
+    <div id="landingSidebarOverlay" class="landing-sidebar-overlay"></div>
+    
+    <div id="landingSidebar" class="landing-sidebar">
+        <div class="landing-sidebar-header">
+            <button id="landingSidebarClose" class="landing-sidebar-close">
+                <img src="resources/icons_light/icon_x.png" alt="cerrar">
+            </button>
+        </div>
+        <div class="landing-sidebar-links">
+            <a href="index.html" class="landing-sidebar-link"><img src="resources/icons_light/home-alt.png"><span>Inicio</span></a>
+            <button id="landingSidebarCategoriesBtn" class="landing-sidebar-link" style="width:100%; text-align:left; background:none; border:none; cursor:pointer;">
+                <img src="resources/icons_light/price-tag-alt.png"><span>Categorías</span>
+                <img src="resources/icons_light/chevron-down.png" style="margin-left:auto;">
+            </button>
+            <div id="landingSidebarCategoriesDropdown" class="landing-sidebar-dropdown">
+                <a href="#" data-categoria="Conciertos">Conciertos</a>
+                <a href="#" data-categoria="Teatro">Teatro</a>
+                <a href="#" data-categoria="Cine">Cine</a>
+                <a href="#" data-categoria="Exposiciones">Exposiciones</a>
+                <a href="#" data-categoria="Danza">Danza</a>
+                <a href="#" data-categoria="Libros">Libros</a>
+                <a href="#" data-categoria="Festival">Festival</a>
+                <a href="#" data-categoria="Infantiles">Infantiles</a>
+                <a href="#" data-categoria="Deportes">Deportes</a>
+                <a href="#" data-categoria="Talleres">Talleres</a>
+                <a href="#" data-categoria="Museos">Museos</a>
+                <a href="#" data-categoria="Ferias">Ferias</a>
+                <a href="#" data-categoria="Farándula">Farándula</a>
+            </div>
+            <a href="calendarioLanding.html" class="landing-sidebar-link"><img src="resources/icons_light/calendar-alt.png"><span>Calendario</span></a>
+            <a href="mapaLanding.html" class="landing-sidebar-link"><img src="resources/icons_light/map.png"><span>Mapa</span></a>
+        </div>
+    </div>
+
+    <nav class="landing-navbar">
+        <div class="landing-logo">
+            <button id="landingMenuToggle" class="landing-menu-toggle"><img src="resources/icons_light/menu.png"></button>
+            <img src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo"><span>Cultura Habana</span>
+        </div>
+        <div class="landing-nav-links">
+            <a href="index.html" class="landing-nav-link"><img src="resources/icons_light/home-alt.png"> Inicio</a>
+            <div id="landingCategoriesDropdown" class="landing-dropdown">
+                <button id="landingCategoriesBtn" class="landing-dropdown-btn"><img src="resources/icons_light/price-tag-alt.png"> Categorías<img src="resources/icons_light/chevron-down.png"></button>
+                <div class="landing-dropdown-content">
+                    <a href="#" data-categoria="Conciertos">Conciertos</a><a href="#" data-categoria="Teatro">Teatro</a><a href="#" data-categoria="Cine">Cine</a>
+                    <a href="#" data-categoria="Exposiciones">Exposiciones</a><a href="#" data-categoria="Danza">Danza</a><a href="#" data-categoria="Libros">Libros</a>
+                    <a href="#" data-categoria="Festival">Festival</a><a href="#" data-categoria="Infantiles">Infantiles</a><a href="#" data-categoria="Deportes">Deportes</a>
+                    <a href="#" data-categoria="Talleres">Talleres</a><a href="#" data-categoria="Museos">Museos</a><a href="#" data-categoria="Ferias">Ferias</a><a href="#" data-categoria="Farándula">Farándula</a>
+                </div>
+            </div>
+            <a href="calendarioLanding.html" class="landing-nav-link"><img src="resources/icons_light/calendar-alt.png"> Calendario</a>
+            <a href="mapaLanding.html" class="landing-nav-link active"><img src="resources/icons_light/map.png"> Mapa</a>
+        </div>
+        <div class="landing-nav-right">
+            <button id="landingSearchTrigger" class="landing-search-trigger"><img src="resources/icons_light/search.png"></button>
+            <button id="landingThemeBtn" class="landing-theme-btn"><img id="landingThemeIcon" src="resources/icons_light/moon.png"></button>
+            <a href="login.html" class="btn-login">Iniciar sesión</a>
+        </div>
+    </nav>
+
+    <div class="mapa-landing-container">
+        <div id="mapa-principal"></div>
+        <div class="map-filters-bar">
+            <div class="filter-category-label">CATEGORÍAS</div>
+            <div id="map-categorias" class="map-categorias"></div>
+            <div class="filter-divider"></div>
+            <div class="filter-features-row">
+                <div class="filter-checkboxes">
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox" id="map-filtro-apto-menores">Apto para menores
+                    </label>
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox" id="map-filtro-aire-libre">Al aire libre
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="landing-common.js"></script>
+    <script>
+        let map, markerClusterGroup;
+        let categoriasActivas = [];
+
+        function getTileUrl() {
+            return document.body.classList.contains('dark-mode') ? 
+                'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' :
+                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+        }
+
+        function initMap() {
+            const tileUrl = getTileUrl();
+            map = L.map('mapa-principal').setView([23.1136, -82.3666], 12);
+            L.tileLayer(tileUrl, { attribution: '&copy; CartoDB | &copy; OSM' }).addTo(map);
+            markerClusterGroup = L.markerClusterGroup();
+            map.addLayer(markerClusterGroup);
+            cargarMarcadores();
+        }
+
+        window.cargarMarcadores = function() {
+            if (!markerClusterGroup) return;
+            markerClusterGroup.clearLayers();
+            let eventos = getEventosFuturos();
+            if (categoriasActivas.length > 0) {
+                eventos = eventos.filter(e => categoriasActivas.includes(e.categoria));
+            }
+            const filtroMenores = document.getElementById('map-filtro-apto-menores');
+            const filtroAireLibre = document.getElementById('map-filtro-aire-libre');
+            if (filtroMenores?.checked) {
+                eventos = eventos.filter(e => e.aptoMenores === true);
+            }
+            if (filtroAireLibre?.checked) {
+                eventos = eventos.filter(e => e.aireLibre === true);
+            }
+            eventos.forEach(evento => {
+                if (evento.lat && evento.lng) {
+                    const marker = L.marker([evento.lat, evento.lng]);
+                    marker.bindPopup(`
+                        <div style="min-width:200px">
+                            <img src="${evento.poster}" style="width:100%; height:100px; object-fit:cover; border-radius:8px">
+                            <h4>${evento.nombre}</h4>
+                            <p> ${new Date(evento.fechaInicio + 'T12:00:00').toLocaleDateString()}</p>
+                            <p><strong>${evento.categoria}</strong></p>
+                            <button onclick="window.location.href='detallesEventoLanding.html?id=${evento.id}'" style="margin-top:8px; padding:4px 12px; background:rgb(2,90,138); color:white; border:none; border-radius:20px; cursor:pointer;">Ver detalles</button>
+                        </div>
+                    `);
+                    marker.on('mouseover', function() { this.openPopup(); });
+                    markerClusterGroup.addLayer(marker);
+                }
+            });
+        }
+
+        window.updateMapTheme = function() {
+            if (!map) return;
+            const newTileUrl = getTileUrl();
+            map.eachLayer(layer => {
+                if (layer._url && (layer._url.includes('basemaps') || layer._url.includes('cartocdn'))) {
+                    map.removeLayer(layer);
+                }
+            });
+            L.tileLayer(newTileUrl, { attribution: '&copy; CartoDB | &copy; OSM' }).addTo(map);
+        }
+
+        function renderizarFiltros() {
+            const categorias = getCategoriasConEventos();
+            categoriasActivas = [...categorias];
+            const container = document.getElementById('map-categorias');
+            if (!container) return;
+            container.innerHTML = categorias.map(cat => `
+                <div class="map-category-chip ${categoriasActivas.includes(cat) ? 'active' : ''}" data-cat="${cat}">${cat}</div>
+            `).join('');
+            document.querySelectorAll('.map-category-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const cat = chip.dataset.cat;
+                    if (categoriasActivas.includes(cat)) {
+                        categoriasActivas = categoriasActivas.filter(c => c !== cat);
+                        chip.classList.remove('active');
+                    } else {
+                        categoriasActivas.push(cat);
+                        chip.classList.add('active');
+                    }
+                    window.cargarMarcadores();
+                });
+            });
+        }
+
+        const filtroMapaMenores = document.getElementById('map-filtro-apto-menores');
+        const filtroMapaAireLibre = document.getElementById('map-filtro-aire-libre');
+        if (filtroMapaMenores) filtroMapaMenores.addEventListener('change', () => window.cargarMarcadores());
+        if (filtroMapaAireLibre) filtroMapaAireLibre.addEventListener('change', () => window.cargarMarcadores());
+
+        const themeObserver = new MutationObserver(() => {
+            window.updateMapTheme();
+            window.cargarMarcadores();
+        });
+        themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        setTimeout(() => { initMap(); renderizarFiltros(); }, 300);
+        window.addEventListener('resize', () => map?.invalidateSize());
+    </script>
+</body>
+</html>

@@ -41,7 +41,7 @@
         
         .filter-category-label {
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: rgb(2, 90, 138);
@@ -50,7 +50,7 @@
         }
         
         body.dark-mode .filter-category-label {
-            color: #5dade2;
+            color: white;
         }
         
         .map-categorias {
@@ -63,7 +63,7 @@
             padding: 0.4rem 1rem;
             background: var(--color-bg);
             border-radius: 40px;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.2s ease;
             color: var(--color-text-primary);
@@ -84,7 +84,7 @@
         
         .filter-divider {
             height: 1px;
-            background: var(--color-border);
+            background: var(--color-text-primary);
             margin: 0.75rem 0;
         }
         
@@ -117,7 +117,7 @@
             align-items: center;
             gap: 0.5rem;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             color: var(--color-text-primary);
             padding: 0.3rem 0.8rem;
             background: var(--color-bg);
@@ -239,6 +239,7 @@
             .map-filters-bar {
                 min-width: 450px;
                 max-width: 600px;
+                margin-left: 20rem;
             }
         }
     </style>
@@ -252,7 +253,8 @@
                 <img id="menuIcon" src="resources/icons_light/menu.png" alt="menú">
             </button>
             <div class="logo">
-                <img src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+                <img class="logo-light" src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+                <img class="logo-dark" src="resources/aguacero_cuba_darklogo_trasnparente.png" alt="Logo">
                 <span>Cultura Habana</span>
             </div>
         </div>
@@ -336,6 +338,14 @@
                         <span>Mapa</span>
                     </a>
                 </li>
+                <li class="menu-item" id="menuGuardados" style="display: none;">
+                    <div class="menu-divider"></div>
+                    <a href="guardados.html" class="menu-link">
+                        <img class="bookmark-light" src="resources/icons_light/bookmark.png" alt="guardados">
+                        <img class="bookmark-dark" src="resources/icons_dark/bookmark.png" alt="guardados" style="display:none;">
+                        <span>Guardados</span>
+                    </a>
+                </li>
                 <li class="menu-item" id="menuPromocion" style="display: none;">
                     <a href="promocion.html" class="menu-link">
                         <img class="promo-light" src="resources/icons_light/plus-circle.png" alt="promocionar">
@@ -363,10 +373,10 @@
                 <div class="filter-features-row">
                     <div class="filter-checkboxes">
                         <label class="filter-checkbox-item">
-                            <input type="checkbox" id="map-filtro-apto-menores"> 👶 Apto para menores
+                            <input type="checkbox" id="map-filtro-apto-menores">Apto para menores
                         </label>
                         <label class="filter-checkbox-item">
-                            <input type="checkbox" id="map-filtro-aire-libre"> 🌳 Al aire libre
+                            <input type="checkbox" id="map-filtro-aire-libre">Aire libre
                         </label>
                     </div>
                 </div>
@@ -443,7 +453,7 @@
                         <div style="min-width: 200px;">
                             <img src="${evento.poster}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" onerror="this.src='https://picsum.photos/id/100/200/100'">
                             <h4 style="margin: 0 0 4px 0;">${evento.nombre}</h4>
-                            <p style="margin: 0; font-size: 12px;">📅 ${formatFechaDDMMYYYY(evento.fechaInicio)}</p>
+                            <p style="margin: 0; font-size: 12px;"> ${formatFechaDDMMYYYY(evento.fechaInicio)}</p>
                             <p style="margin: 4px 0 0 0; font-size: 12px;"><strong>${evento.categoria}</strong></p>
                             <button onclick="window.location.href='detallesEvento.html?id=${evento.id}'" style="margin-top: 8px; padding: 4px 12px; background: rgb(2,90,138); color: white; border: none; border-radius: 20px; cursor: pointer;">Ver detalles</button>
                         </div>
@@ -501,6 +511,15 @@
             }
         });
         themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        function actualizarMenuGuardados() {
+            const usuario = getUsuarioActual();
+            const menuGuardados = document.getElementById('menuGuardados');
+            if (menuGuardados) {
+                menuGuardados.style.display = usuario ? 'block' : 'none';
+            }
+        }
+        actualizarMenuGuardados();
         
         // Inicializar mapa después de que script.js termine de cargar
         setTimeout(function() {

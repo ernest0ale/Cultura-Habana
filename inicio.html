@@ -16,7 +16,8 @@
                 <img id="menuIcon" src="resources/icons_light/menu.png" alt="menú">
             </button>
             <div class="logo">
-                <img src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+                <img class="logo-light" src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+                <img class="logo-dark" src="resources/aguacero_cuba_darklogo_trasnparente.png" alt="Logo">
                 <span>Cultura Habana</span>
             </div>
         </div>
@@ -98,6 +99,14 @@
                         <img class="map-light" src="resources/icons_light/map.png" alt="mapa">
                         <img class="map-dark" src="resources/icons_dark/map.png" alt="mapa" style="display:none;">
                         <span>Mapa</span>
+                    </a>
+                </li>
+                <li class="menu-item" id="menuGuardados" style="display: none;">
+                    <div class="menu-divider"></div>
+                    <a href="guardados.html" class="menu-link">
+                        <img class="bookmark-light" src="resources/icons_light/bookmark.png" alt="guardados">
+                        <img class="bookmark-dark" src="resources/icons_dark/bookmark.png" alt="guardados" style="display:none;">
+                        <span>Guardados</span>
                     </a>
                 </li>
                 <li class="menu-item" id="menuPromocion" style="display: none;">
@@ -295,6 +304,15 @@
             const footerPromo = document.getElementById('footerPromocionLink');
             if (footerPromo) footerPromo.style.display = 'list-item';
         }
+
+        function actualizarMenuGuardados() {
+            const usuario = getUsuarioActual();
+            const menuGuardados = document.getElementById('menuGuardados');
+            if (menuGuardados) {
+                menuGuardados.style.display = usuario ? 'block' : 'none';
+            }
+        }
+        actualizarMenuGuardados();
 
         // Inicializar
         renderizarInicio();

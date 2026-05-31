@@ -438,11 +438,13 @@ function updateActiveMenuItem() {
 // ==================== TEMA OSCURO ====================
 function applyTheme() {
     const iconMappings = [
+        { light: '.logo-light', dark: '.logo-dark' },
         { light: '.home-light', dark: '.home-dark' },
         { light: '.categories-light', dark: '.categories-dark' },
         { light: '.dropdown-light', dark: '.dropdown-dark' },
         { light: '.calendar-light', dark: '.calendar-dark' },
         { light: '.map-light', dark: '.map-dark' },
+        { light: '.bookmark-light', dark: '.bookmark-dark' },
         { light: '.promo-light', dark: '.promo-dark' }
     ];
     
@@ -710,15 +712,20 @@ function initSearch() {
 
 // ==================== NOTIFICACIONES ====================
 function initNotifications() {
+    // Verificar que la función existe
     if (typeof initNotificationsSystem === 'function') {
         initNotificationsSystem();
     } else {
-        const notifBtn = document.getElementById('notificationsBtn');
-        if (notifBtn) {
-            notifBtn.addEventListener('click', () => {
-                alert('Sistema de notificaciones no disponible. Intenta recargar la página.');
-            });
-        }
+        console.warn('initNotificationsSystem no está definida, recargando...');
+        // Recargar el script de notificaciones dinámicamente
+        const script = document.createElement('script');
+        script.src = 'notifications.js';
+        script.onload = () => {
+            if (typeof initNotificationsSystem === 'function') {
+                initNotificationsSystem();
+            }
+        };
+        document.head.appendChild(script);
     }
 }
 
@@ -878,12 +885,71 @@ function actualizarNotificacionesPorSesion() {
     }
 }
 
-// ==================== AVATAR UNIFICADO ====================
+// ==================== AVATAR CON SUBMENÚ FLOTANTE ====================
 function initAvatarUnificado() {
     const avatarDiv = document.getElementById('avatarUsuario');
     const menuPromocion = document.getElementById('menuPromocion');
     
     if (!avatarDiv) return;
+    
+    let avatarSubmenu = null;
+    
+    function crearSubmenuAvatar() {
+        if (avatarSubmenu) return;
+        
+        avatarSubmenu = document.createElement('div');
+        avatarSubmenu.className = 'avatar-submenu';
+        avatarSubmenu.style.cssText = `
+            position: fixed;
+            background: var(--color-surface);
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px var(--shadow-border);
+            border: 1px solid var(--color-border);
+            z-index: 10001;
+            min-width: 160px;
+            overflow: hidden;
+            display: none;
+        `;
+        avatarSubmenu.innerHTML = `
+            <a href="perfil.html" class="avatar-submenu-item">
+                <span>Configuración</span>
+            </a>
+            <div class="avatar-submenu-divider"></div>
+            <a href="#" id="logoutSubmenuBtn" class="avatar-submenu-item">
+                <span>Cerrar sesión</span>
+            </a>
+        `;
+        document.body.appendChild(avatarSubmenu);
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            .avatar-submenu-item {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.6rem 1rem;
+                color: var(--color-text-primary);
+                text-decoration: none;
+                font-size: 0.8rem;
+                transition: background 0.2s ease;
+            }
+            .avatar-submenu-item:hover {
+                background: var(--color-bg);
+            }
+            .avatar-submenu-divider {
+                height: 1px;
+                background: var(--color-border);
+                margin: 0.2rem 0;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.getElementById('logoutSubmenuBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            cerrarSesion();
+            window.location.reload();
+        });
+    }
     
     function updateAvatar() {
         const usuario = getUsuarioActual();
@@ -924,18 +990,37 @@ function initAvatarUnificado() {
         }
     }
     
-    avatarDiv.addEventListener('click', () => {
+    function showSubmenu(e) {
+        e.stopPropagation();
+        
         const usuario = getUsuarioActual();
-        if (usuario) {
-            if (confirm(`Cerrar sesión ${usuario.nombre}?`)) {
-                cerrarSesion();
-                window.location.reload();
-            }
-        } else {
+        if (!usuario) {
             window.location.href = 'login.html';
+            return;
         }
-    });
+        
+        crearSubmenuAvatar();
+        
+        const rect = avatarDiv.getBoundingClientRect();
+        avatarSubmenu.style.display = 'block';
+        avatarSubmenu.style.left = `${rect.left - 160}px`;
+        avatarSubmenu.style.top = `${rect.bottom + 5}px`;
+        
+        const closeHandler = (event) => {
+            if (!avatarDiv.contains(event.target) && !avatarSubmenu.contains(event.target)) {
+                avatarSubmenu.style.display = 'none';
+                document.removeEventListener('click', closeHandler);
+                document.removeEventListener('touchstart', closeHandler);
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', closeHandler);
+            document.addEventListener('touchstart', closeHandler);
+        }, 10);
+    }
     
+    avatarDiv.addEventListener('click', showSubmenu);
     updateAvatar();
 }
 
@@ -971,11 +1056,102 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function getEtiquetaAptoMenores(apto) {
-    if (apto === true) return { texto: '👶 Apto para menores', clase: 'badge-menores-si' };
-    return { texto: '❌ No apto para menores', clase: 'badge-menores-no' };
+    if (apto === true) return { texto: 'Menores', clase: 'badge-menores-si' };
+    return { texto: 'Adultos', clase: 'badge-menores-no' };
 }
 
 function getEtiquetaAireLibre(aire) {
-    if (aire === true) return { texto: '🌳 Al aire libre', clase: 'badge-aire-si' };
-    return { texto: '🏠 En espacio cerrado', clase: 'badge-aire-no' };
+    if (aire === true) return { texto: 'Al aire libre', clase: 'badge-aire-si' };
+    return { texto: 'Espacio cerrado', clase: 'badge-aire-no' };
+}
+
+// En script.js - Función para obtener eventos guardados
+function getEventosGuardados() {
+    const usuario = getUsuarioActual();
+    if (!usuario || !usuario.recordatorios) return [];
+    const eventos = getEventos();
+    return usuario.recordatorios.map(id => eventos.find(e => e.id === id)).filter(e => e);
+}
+
+// landing-common.js - Script común para todas las landing pages
+function initLandingPage(currentPage) {
+    // Verificar si ya hay sesión iniciada
+    const usuario = getUsuarioActual();
+    if (usuario) {
+        // Redirigir a la página correspondiente del sistema principal
+        const redirectMap = {
+            'index': 'inicio.html',
+            'categoriasLanding': 'inicio.html',
+            'calendarioLanding': 'calendario.html',
+            'mapaLanding': 'mapa.html',
+            'busquedaLanding': 'busqueda.html',
+            'detallesEventoLanding': 'detallesEvento.html'
+        };
+        const redirectTo = redirectMap[currentPage] || 'inicio.html';
+        window.location.href = redirectTo;
+        return;
+    }
+    
+    // Configurar tema oscuro
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) document.body.classList.add('dark-mode');
+    
+    const themeBtn = document.getElementById('landingThemeBtn');
+    const themeIcon = document.getElementById('landingThemeIcon');
+    
+    function applyTheme() {
+        if (document.body.classList.contains('dark-mode')) {
+            document.body.classList.remove('dark-mode');
+            themeIcon.src = 'resources/icons_light/moon.png';
+            localStorage.setItem('darkMode', 'false');
+        } else {
+            document.body.classList.add('dark-mode');
+            themeIcon.src = 'resources/icons_dark/sun.png';
+            localStorage.setItem('darkMode', 'true');
+        }
+    }
+    
+    themeBtn?.addEventListener('click', applyTheme);
+    
+    // Configurar búsqueda móvil
+    initLandingMobileSearch();
+}
+
+function initLandingMobileSearch() {
+    if (document.querySelector('.mobile-search-overlay')) return;
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'mobile-search-overlay';
+    overlay.innerHTML = `
+        <div class="mobile-search-container">
+            <div class="mobile-search-bar">
+                <input type="text" id="mobile-search-input" placeholder="Buscar eventos...">
+                <button class="mobile-search-btn" id="mobile-search-submit">
+                    <img src="resources/icons_dark/search.png" alt="buscar" style="width: 18px; height: 18px;">
+                </button>
+                <button class="mobile-search-close" id="mobile-search-close">
+                    <img src="resources/icons_light/icon_x.png" alt="cerrar">
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    const searchInput = document.getElementById('mobile-search-input');
+    const searchSubmit = document.getElementById('mobile-search-submit');
+    const searchClose = document.getElementById('mobile-search-close');
+    
+    function realizarBusqueda() {
+        const termino = searchInput.value.trim();
+        if (termino) window.location.href = `busquedaLanding.html?q=${encodeURIComponent(termino)}`;
+        else overlay.classList.remove('active');
+    }
+    
+    searchSubmit?.addEventListener('click', realizarBusqueda);
+    searchInput?.addEventListener('keypress', (e) => { if (e.key === 'Enter') realizarBusqueda(); });
+    searchClose?.addEventListener('click', () => overlay.classList.remove('active'));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('active'); });
+    
+    const searchTrigger = document.querySelector('.landing-search-trigger');
+    searchTrigger?.addEventListener('click', () => overlay.classList.add('active'));
 }

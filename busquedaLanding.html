@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Búsqueda | Cultura Habana</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .busqueda-landing-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .busqueda-layout {
+            display: flex;
+            gap: 2rem;
+        }
+        .resultados-area {
+            flex: 1;
+            min-width: 0;
+        }
+        .resultados-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 0.75rem;
+        }
+        .resultados-header h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+        .resultados-header h3 span {
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+        .resultados-orden select {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            background: var(--color-surface);
+            color: var(--color-text-primary);
+            font-size: 0.9rem;
+        }
+        .resultados-orden label{
+            font-size: 0.9rem;
+        }
+        .filtros-sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: var(--color-surface);
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 8px var(--shadow-border);
+            align-self: flex-start;
+            position: sticky;
+            top: 80px;
+        }
+        .filtros-sidebar h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            margin-top: 0.5rem;
+            color: var(--color-text-primary);
+        }
+        .fecha-input {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            background: var(--color-bg);
+            color: var(--color-text-primary);
+            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+        }
+        .categorias-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .categoria-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.8rem;
+            background: var(--color-bg);
+            border-radius: 30px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: var(--color-text-primary);
+        }
+        .divisor-filtros {
+            margin: 1rem 0;
+            border: none;
+            height: 1px;
+            background: var(--color-border);
+        }
+        .evento-resultado {
+            display: flex;
+            gap: 1rem;
+            background: var(--color-surface);
+            border-radius: 12px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 4px var(--shadow-border);
+        }
+        .evento-resultado:hover {
+            transform: translateX(4px);
+            background: var(--color-bg);
+        }
+        .evento-resultado img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .evento-resultado-info {
+            flex: 1;
+        }
+        .evento-resultado-info h4 {
+            font-size: 1rem;
+            margin-bottom: 0.2rem;
+            color: var(--color-text-primary);
+        }
+        .evento-resultado-info .fecha {
+            font-size: 0.95rem;
+            color: var(--color-text-secondary);
+        }
+        .categoria-badge {
+            display: inline-block;
+            background: var(--color-primary);
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+        .empty-resultados {
+            text-align: center;
+            padding: 3rem;
+            background: var(--color-surface);
+            border-radius: 16px;
+        }
+        .mobile-filter-btn {
+            display: none;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+        .mobile-filter-btn img {
+            width: 20px;
+            height: 20px;
+        }
+        @media (max-width: 700px) {
+            .busqueda-layout {
+                flex-direction: column;
+            }
+            .filtros-sidebar {
+                display: none;
+            }
+            .mobile-filter-btn {
+                display: flex;
+            }
+            .desktop-only {
+                display: none;
+            }
+        }
+        @media (min-width: 701px) {
+            .mobile-filter-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body data-page="busquedaLanding">
+
+    <div id="landingSidebarOverlay" class="landing-sidebar-overlay"></div>
+    
+    <div id="landingSidebar" class="landing-sidebar">
+        <div class="landing-sidebar-header">
+            <button id="landingSidebarClose" class="landing-sidebar-close"><img src="resources/icons_light/icon_x.png"></button>
+        </div>
+        <div class="landing-sidebar-links">
+            <a href="index.html" class="landing-sidebar-link"><img src="resources/icons_light/home-alt.png"><span>Inicio</span></a>
+            <button id="landingSidebarCategoriesBtn" class="landing-sidebar-link" style="width:100%; text-align:left; background:none; border:none; cursor:pointer;">
+                <img src="resources/icons_light/price-tag-alt.png"><span>Categorías</span><img src="resources/icons_light/chevron-down.png" style="margin-left:auto;">
+            </button>
+            <div id="landingSidebarCategoriesDropdown" class="landing-sidebar-dropdown">
+                <a href="#" data-categoria="Conciertos">Conciertos</a><a href="#" data-categoria="Teatro">Teatro</a><a href="#" data-categoria="Cine">Cine</a>
+                <a href="#" data-categoria="Exposiciones">Exposiciones</a><a href="#" data-categoria="Danza">Danza</a><a href="#" data-categoria="Libros">Libros</a>
+                <a href="#" data-categoria="Festival">Festival</a><a href="#" data-categoria="Infantiles">Infantiles</a><a href="#" data-categoria="Deportes">Deportes</a>
+                <a href="#" data-categoria="Talleres">Talleres</a><a href="#" data-categoria="Museos">Museos</a><a href="#" data-categoria="Ferias">Ferias</a><a href="#" data-categoria="Farándula">Farándula</a>
+            </div>
+            <a href="calendarioLanding.html" class="landing-sidebar-link"><img src="resources/icons_light/calendar-alt.png"><span>Calendario</span></a>
+            <a href="mapaLanding.html" class="landing-sidebar-link"><img src="resources/icons_light/map.png"><span>Mapa</span></a>
+        </div>
+    </div>
+
+    <nav class="landing-navbar">
+        <div class="landing-logo">
+            <button id="landingMenuToggle" class="landing-menu-toggle"><img src="resources/icons_light/menu.png"></button>
+            <img src="resources/aguacero_cuba_logo_trasnparente.png"><span>Cultura Habana</span>
+        </div>
+        <div class="landing-nav-links">
+            <a href="index.html" class="landing-nav-link"><img src="resources/icons_light/home-alt.png"> Inicio</a>
+            <div id="landingCategoriesDropdown" class="landing-dropdown">
+                <button id="landingCategoriesBtn" class="landing-dropdown-btn"><img src="resources/icons_light/price-tag-alt.png"> Categorías<img src="resources/icons_light/chevron-down.png"></button>
+                <div class="landing-dropdown-content">
+                    <a href="#" data-categoria="Conciertos">Conciertos</a><a href="#" data-categoria="Teatro">Teatro</a><a href="#" data-categoria="Cine">Cine</a>
+                    <a href="#" data-categoria="Exposiciones">Exposiciones</a><a href="#" data-categoria="Danza">Danza</a><a href="#" data-categoria="Libros">Libros</a>
+                    <a href="#" data-categoria="Festival">Festival</a><a href="#" data-categoria="Infantiles">Infantiles</a><a href="#" data-categoria="Deportes">Deportes</a>
+                    <a href="#" data-categoria="Talleres">Talleres</a><a href="#" data-categoria="Museos">Museos</a><a href="#" data-categoria="Ferias">Ferias</a><a href="#" data-categoria="Farándula">Farándula</a>
+                </div>
+            </div>
+            <a href="calendarioLanding.html" class="landing-nav-link"><img src="resources/icons_light/calendar-alt.png"> Calendario</a>
+            <a href="mapaLanding.html" class="landing-nav-link"><img src="resources/icons_light/map.png"> Mapa</a>
+        </div>
+        <div class="landing-nav-right">
+            <button id="landingSearchTrigger" class="landing-search-trigger"><img src="resources/icons_light/search.png"></button>
+            <button id="landingThemeBtn" class="landing-theme-btn"><img id="landingThemeIcon" src="resources/icons_light/moon.png"></button>
+            <a href="login.html" class="btn-login">Iniciar sesión</a>
+        </div>
+    </nav>
+
+    <div class="busqueda-landing-container">
+        <div class="busqueda-layout">
+            <div class="resultados-area">
+                <div class="resultados-header">
+                    <h3>Resultados para: <span id="termino-busqueda"></span></h3>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="resultados-orden desktop-only">
+                            <label>Ordenar por:</label>
+                            <select id="orden-eventos">
+                                <option value="asc">Más antiguos primero</option>
+                                <option value="desc">Más recientes primero</option>
+                            </select>
+                        </div>
+                        <button id="mobileFilterBtn" class="mobile-filter-btn">
+                            <img src="resources/icons_light/filter.png" alt="filtros">
+                        </button>
+                    </div>
+                </div>
+                <div id="resultados-lista">
+                    <div class="loading-spinner">Cargando resultados...</div>
+                </div>
+            </div>
+            
+            <div class="filtros-sidebar">
+                <h3>Intervalo de fechas</h3>
+                <input type="date" id="fecha-inicio" class="fecha-input">
+                <input type="date" id="fecha-fin" class="fecha-input">
+                
+                <hr class="divisor-filtros">
+                
+                <h3>Categorías</h3>
+                <div id="filtros-categorias" class="categorias-group"></div>
+                
+                <hr class="divisor-filtros">
+                
+                <h3>Características</h3>
+                <div class="categorias-group">
+                    <label class="categoria-checkbox"><input type="checkbox" id="filtro-apto-menores">Apto para menores</label>
+                    <label class="categoria-checkbox"><input type="checkbox" id="filtro-aire-libre">Al aire libre</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer-landing">
+        <div class="footer-container">
+            <div class="footer-columns">
+                <div class="footer-col-1">
+                    <div class="footer-logo">
+                        <img src="resources/aguacero_cuba_darklogo_trasnparente.png" alt="Cultura Habana">
+                        <span>Cultura Habana</span>
+                    </div>
+                    <p class="footer-description">
+                        Los mejores planes en La Habana se encuentran bajo este Aguacero.<br><br>
+                        Deja la sombrilla en casa, ¡no te pierdas ni una gota de cultura!
+                    </p>
+                    <div class="footer-social">
+                        <a href="https://www.facebook.com/aguacerocuba" class="social-icon-link" target="_blank">
+                            <img src="resources/icons_light/facebook.png" alt="Facebook">
+                        </a>
+                        <a href="https://www.instagram.com/aguacero_cuba/" class="social-icon-link" target="_blank">
+                            <img src="resources/icons_light/instagram.png" alt="Instagram">
+                        </a>
+                        <a href="https://t.me/Aguacero" class="social-icon-link" target="_blank">
+                            <img src="resources/icons_light/telegram.png" alt="Telegram">
+                        </a>
+                        <a href="https://www.whatsapp.com/channel/0029VbApHoQKmCPX3VynJs2n" class="social-icon-link" target="_blank">
+                            <img src="resources/icons_light/whatsapp.png" alt="WhatsApp">
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-col-2">
+                    <h3>EXPLORAR</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Inicio</a></li>
+                        <li><a href="calendarioLanding.html">Calendario</a></li>
+                        <li><a href="mapaLanding.html">Mapa</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col-3">
+                    <h3>CONTACTO</h3>
+                    <div class="contact-item"><strong>Tel:</strong> <a href="tel:+5351234567">+53 5123 4567</a></div>
+                    <div class="contact-item"><strong>Co:</strong> <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a></div>
+                    <div class="contact-item"><strong>Ub:</strong> <span>La Habana, Cuba</span></div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2025 Cultura Habana. Todos los derechos reservados.</p>
+                <div class="footer-legal">
+                    <a href="#">Política de privacidad</a>
+                    <a href="#">Términos de servicio</a>
+                    <a href="#">Política de cookies</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="data.js"></script>
+    <script src="landing-common.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const terminoBusqueda = urlParams.get('q') || '';
+        document.getElementById('termino-busqueda').textContent = terminoBusqueda || 'todos';
+        
+        let categoriasSeleccionadas = [];
+        const filtroAptoMenores = document.getElementById('filtro-apto-menores');
+        const filtroAireLibre = document.getElementById('filtro-aire-libre');
+        
+        function aplicarFiltrosAdicionales(eventos) {
+            if (filtroAptoMenores?.checked) eventos = eventos.filter(e => e.aptoMenores === true);
+            if (filtroAireLibre?.checked) eventos = eventos.filter(e => e.aireLibre === true);
+            return eventos;
+        }
+        
+        function renderizarFiltros() {
+            const categorias = getCategoriasConEventos();
+            categoriasSeleccionadas = [...categorias];
+            const container = document.getElementById('filtros-categorias');
+            if (!container) return;
+            container.innerHTML = categorias.map(cat => `
+                <label class="categoria-checkbox">
+                    <input type="checkbox" class="filtro-categoria" value="${cat}" checked> ${cat}
+                </label>
+            `).join('');
+            document.querySelectorAll('.filtro-categoria').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    categoriasSeleccionadas = Array.from(document.querySelectorAll('.filtro-categoria:checked')).map(c => c.value);
+                    renderizarResultados();
+                });
+            });
+        }
+        
+        function renderizarResultados() {
+            let eventos = buscarEventos(terminoBusqueda);
+            if (categoriasSeleccionadas.length > 0) {
+                eventos = eventos.filter(e => categoriasSeleccionadas.includes(e.categoria));
+            }
+            eventos = aplicarFiltrosAdicionales(eventos);
+            
+            const fechaInicio = document.getElementById('fecha-inicio')?.value;
+            const fechaFin = document.getElementById('fecha-fin')?.value;
+            
+            if (fechaInicio) {
+                const inicio = new Date(fechaInicio + 'T12:00:00');
+                eventos = eventos.filter(e => {
+                    const fechaEvento = new Date(e.fechaInicio + 'T12:00:00');
+                    return fechaEvento >= inicio;
+                });
+            }
+            if (fechaFin) {
+                const fin = new Date(fechaFin + 'T23:59:59');
+                eventos = eventos.filter(e => {
+                    const fechaEvento = new Date(e.fechaInicio + 'T12:00:00');
+                    return fechaEvento <= fin;
+                });
+            }
+            
+            const orden = document.getElementById('orden-eventos')?.value || 'asc';
+            eventos.sort((a,b) => orden === 'asc' ? new Date(a.fechaInicio + 'T12:00:00') - new Date(b.fechaInicio + 'T12:00:00') : new Date(b.fechaInicio + 'T12:00:00') - new Date(a.fechaInicio + 'T12:00:00'));
+            
+            const container = document.getElementById('resultados-lista');
+            if (!container) return;
+            if (eventos.length === 0) {
+                container.innerHTML = '<div class="empty-resultados">No se encontraron eventos</div>';
+                return;
+            }
+            container.innerHTML = eventos.map(evento => `
+                <div class="evento-resultado" onclick="window.location.href='detallesEventoLanding.html?id=${evento.id}'">
+                    <img src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/60/60'">
+                    <div class="evento-resultado-info">
+                        <h4>${evento.nombre}</h4>
+                        <p class="fecha">${new Date(evento.fechaInicio + 'T12:00:00').toLocaleDateString()} ${evento.horaInicio ? '· ' + evento.horaInicio.substring(0,5) : ''}</p>
+                        <span class="categoria-badge">${evento.categoria}</span>
+                        ${evento.aptoMenores ? '<span class="categoria-badge" style="background:#27ae60;">Menores</span>' : '<span class="categoria-badge" style="background:#e67e22;">Adultos</span>'}
+                        ${evento.aireLibre ? '<span class="categoria-badge" style="background:#f39c12;">Aire libre</span>' : '<span class="categoria-badge" style="background:#3498db;">Espacio cerrado</span>'}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('fecha-inicio')?.addEventListener('change', renderizarResultados);
+        document.getElementById('fecha-fin')?.addEventListener('change', renderizarResultados);
+        document.getElementById('orden-eventos')?.addEventListener('change', renderizarResultados);
+        filtroAptoMenores?.addEventListener('change', renderizarResultados);
+        filtroAireLibre?.addEventListener('change', renderizarResultados);
+        
+        renderizarFiltros();
+        renderizarResultados();
+    </script>
+</body>
+</html>
