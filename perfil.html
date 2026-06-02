@@ -453,7 +453,10 @@
                 
                 <!-- Botón guardar -->
                 <div style="text-align: center; margin-bottom: 2rem;">
-                    <button id="saveChangesBtn" class="btn-primary" style="padding: 0.8rem 2rem;">Guardar cambios</button>
+                    <button id="saveChangesBtn" class="btn-icon" style="margin-bottom: 2rem;">
+                        <img src="resources/icons_dark/save.png" alt="guardar" id="saveIcon">
+                        <span>Guardar cambios</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -476,8 +479,14 @@
                 <input type="password" id="confirm-new-password" placeholder="••••••••">
             </div>
             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                <button id="confirmPasswordBtn" class="btn-primary">Actualizar</button>
-                <button id="cancelPasswordBtn" class="btn-primary btn-secondary" style="background: var(--color-border);">Cancelar</button>
+                <button id="saveChangesBtn" class="btn-icon" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 8px;">
+                    <img src="resources/icons_dark/save.png" alt="guardar" style="width: 20px; height: 20px;">
+                    <span>Guardar cambios</span>
+                </button>
+                <button id="confirmDeleteBtn" class="btn-primary btn-danger" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <img src="resources/icons_dark/icon_x.png" alt="eliminar" style="width: 18px; height: 18px; filter: brightness(0) invert(1);">
+                    Eliminar cuenta
+                </button>
             </div>
         </div>
     </div>

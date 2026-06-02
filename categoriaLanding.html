@@ -215,21 +215,26 @@
         function renderizarEventos() {
             let eventos = getEventos().filter(e => e.categoria === categoriaActual);
             const orden = document.getElementById('orden-eventos').value;
-            eventos.sort((a,b) => orden === 'asc' ? new Date(a.fechaInicio) - new Date(b.fechaInicio) : new Date(b.fechaInicio) - new Date(a.fechaInicio));
+            eventos.sort((a,b) => orden === 'asc' ? a.fechaInicio.localeCompare(b.fechaInicio) : b.fechaInicio.localeCompare(a.fechaInicio));
             const container = document.getElementById('eventos-lista');
             if (eventos.length === 0) {
                 container.innerHTML = `<div class="no-eventos">No hay eventos disponibles en "${categoriaActual}"</div>`;
                 return;
             }
-            container.innerHTML = eventos.map(e => `
-                <div class="evento-card-horizontal" onclick="window.location.href='detallesEventoLanding.html?id=${e.id}'">
-                    <img src="${e.poster}" onerror="this.src='https://picsum.photos/id/100/220/150'">
-                    <div class="evento-card-info">
-                        <h4>${e.nombre.length > 30 ? e.nombre.substring(0,27)+'...' : e.nombre}</h4>
-                        <p> ${new Date(e.fechaInicio).toLocaleDateString()} ${e.horaInicio ? '· ' + e.horaInicio.substring(0,5) : ''}</p>
+            container.innerHTML = eventos.map(e => {
+                const [year, month, day] = e.fechaInicio.split('-');
+                const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+                const fechaFormateada = `${parseInt(day)} ${meses[parseInt(month)-1]}`;
+                return `
+                    <div class="evento-card-horizontal" onclick="window.location.href='detallesEventoLanding.html?id=${e.id}'">
+                        <img src="${e.poster}" onerror="this.src='https://picsum.photos/id/100/220/150'">
+                        <div class="evento-card-info">
+                            <h4>${e.nombre.length > 30 ? e.nombre.substring(0,27)+'...' : e.nombre}</h4>
+                            <p>${fechaFormateada} ${e.horaInicio ? '· ' + e.horaInicio.substring(0,5) : ''}</p>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
         document.getElementById('orden-eventos').addEventListener('change', renderizarEventos);

@@ -206,10 +206,13 @@
             eventos = eventos.filter(evento => evento.categoria === categoriaActual);
             
             const orden = document.getElementById('orden-eventos')?.value || 'asc';
+            // 🔥 ORDENAR CON STRINGS (NO new Date())
             eventos.sort((a, b) => {
-                const fechaA = new Date(a.fechaInicio);
-                const fechaB = new Date(b.fechaInicio);
-                return orden === 'asc' ? fechaA - fechaB : fechaB - fechaA;
+                if (orden === 'asc') {
+                    return a.fechaInicio.localeCompare(b.fechaInicio);
+                } else {
+                    return b.fechaInicio.localeCompare(a.fechaInicio);
+                }
             });
             
             const container = document.getElementById('categoria-lista');
@@ -225,7 +228,6 @@
                 return;
             }
             
-            // Mismo estilo que inicio: tarjetas horizontales
             container.innerHTML = eventos.map(evento => `
                 <div class="evento-card-inicio" onclick="window.location.href='detallesEvento.html?id=${evento.id}'">
                     <img class="evento-poster" src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/400/300'">

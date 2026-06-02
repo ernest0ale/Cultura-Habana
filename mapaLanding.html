@@ -254,10 +254,10 @@
             <div class="filter-features-row">
                 <div class="filter-checkboxes">
                     <label class="filter-checkbox-item">
-                        <input type="checkbox" id="map-filtro-apto-menores">Apto para menores
+                        <input type="checkbox" id="map-filtro-apto-menores"> Apto para menores
                     </label>
                     <label class="filter-checkbox-item">
-                        <input type="checkbox" id="map-filtro-aire-libre">Al aire libre
+                        <input type="checkbox" id="map-filtro-aire-libre"> Exterior
                     </label>
                 </div>
             </div>
@@ -307,7 +307,7 @@
                         <div style="min-width:200px">
                             <img src="${evento.poster}" style="width:100%; height:100px; object-fit:cover; border-radius:8px">
                             <h4>${evento.nombre}</h4>
-                            <p> ${new Date(evento.fechaInicio + 'T12:00:00').toLocaleDateString()}</p>
+                            <p>${formatFechaDDMMYYYY(evento.fechaInicio)}</p>
                             <p><strong>${evento.categoria}</strong></p>
                             <button onclick="window.location.href='detallesEventoLanding.html?id=${evento.id}'" style="margin-top:8px; padding:4px 12px; background:rgb(2,90,138); color:white; border:none; border-radius:20px; cursor:pointer;">Ver detalles</button>
                         </div>

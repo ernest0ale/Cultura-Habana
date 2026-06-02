@@ -140,7 +140,7 @@
             <button id="landingMenuToggle" class="landing-menu-toggle">
                 <img src="resources/icons_light/menu.png" alt="menú">
             </button>
-                <img class="logo-light" src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+                <img class="landing-logo-light" src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
             <span>Cultura Habana</span>
         </div>
         <div class="landing-nav-links">
@@ -266,16 +266,21 @@
                 return;
             }
             
-            container.innerHTML = eventos.slice(0, 8).map(evento => `
-                <div class="evento-card" onclick="window.location.href='detallesEventoLanding.html?id=${evento.id}'">
-                    <img src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/300/180'">
-                    <div class="evento-info">
-                        <h3>${evento.nombre.length > 35 ? evento.nombre.substring(0,32)+'...' : evento.nombre}</h3>
-                        <p class="fecha">${new Date(evento.fechaInicio).toLocaleDateString('es-ES', { day:'numeric', month:'short' })}</p>
-                        <span class="categoria-badge">${evento.categoria}</span>
+            container.innerHTML = eventos.slice(0, 8).map(evento => {
+                const [year, month, day] = evento.fechaInicio.split('-');
+                const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+                const fechaFormateada = `${parseInt(day)} ${meses[parseInt(month)-1]}`;
+                return `
+                    <div class="evento-card" onclick="window.location.href='detallesEventoLanding.html?id=${evento.id}'">
+                        <img src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/300/180'">
+                        <div class="evento-info">
+                            <h3>${evento.nombre.length > 35 ? evento.nombre.substring(0,32)+'...' : evento.nombre}</h3>
+                            <p class="fecha">${fechaFormateada}</p>
+                            <span class="categoria-badge">${evento.categoria}</span>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
         cargarEventosDestacados();

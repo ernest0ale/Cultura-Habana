@@ -227,7 +227,7 @@
             
             // Ordenar eventos dentro de cada categoría por fecha
             for (let cat in categoriasConEventos) {
-                categoriasConEventos[cat].sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
+                categoriasConEventos[cat].sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
             }
             
             // Obtener todas las categorías únicas
@@ -246,10 +246,11 @@
             
             // Calcular eventos de esta semana
             const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
+            const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
             const dentroDe7Dias = new Date();
             dentroDe7Dias.setDate(hoy.getDate() + 7);
-            const eventosSemana = eventos.filter(e => new Date(e.fechaInicio) >= hoy && new Date(e.fechaInicio) <= dentroDe7Dias);
+            const dentroDe7DiasStr = `${dentroDe7Dias.getFullYear()}-${String(dentroDe7Dias.getMonth() + 1).padStart(2, '0')}-${String(dentroDe7Dias.getDate()).padStart(2, '0')}`;
+            const eventosSemana = eventos.filter(e => e.fechaInicio >= hoyStr && e.fechaInicio <= dentroDe7DiasStr);
             
             let html = '';
             

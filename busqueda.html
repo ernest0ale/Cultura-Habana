@@ -6,6 +6,36 @@
     <title>Búsqueda | Cultura Habana</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+        .mobile-filter-btn {
+            display: none;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+        .mobile-filter-btn img {
+            width: 20px;
+            height: 20px;
+        }
+        @media (max-width: 700px) {
+            .filters-sidebar {
+                display: none;
+            }
+            .mobile-filter-btn {
+                display: flex;
+            }
+            .resultados-orden-mobile {
+                display: block !important;
+            }
+        }
+        @media (min-width: 701px) {
+            .mobile-filter-btn {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -120,6 +150,13 @@
             
             <!-- Filtros (derecha) -->
             <div class="filters-sidebar">
+                <div class="resultados-orden-mobile" style="margin-bottom: 1rem; display: none;">
+                    <label>Ordenar por:</label>
+                    <select id="orden-eventos-mobile">
+                        <option value="asc">Más antiguos primero</option>
+                        <option value="desc">Más recientes primero</option>
+                    </select>
+                </div>
                 <h3>Intervalo de fechas</h3>
                 <div class="rango-inputs">
                     <div class="rango-item">
@@ -145,10 +182,10 @@
                 <h3>Características</h3>
                 <div class="categorias-group">
                     <label class="categoria-checkbox">
-                        <input type="checkbox" id="filtro-apto-menores"> 👶 Apto para menores
+                        <input type="checkbox" id="filtro-apto-menores"> Apto para menores
                     </label>
                     <label class="categoria-checkbox">
-                        <input type="checkbox" id="filtro-aire-libre"> 🌳 Al aire libre
+                        <input type="checkbox" id="filtro-aire-libre"> Exterior
                     </label>
                 </div>
             </div>
@@ -274,28 +311,22 @@
             const fechaInicio = document.getElementById('fecha-inicio')?.value;
             const fechaFin = document.getElementById('fecha-fin')?.value;
             
+            // 🔥 FILTRAR POR RANGO DE FECHAS - COMPARACIÓN DIRECTA DE STRINGS 🔥
             if (fechaInicio) {
-                const inicio = new Date(fechaInicio);
-                inicio.setHours(0, 0, 0, 0);
-                eventos = eventos.filter(e => {
-                    const fechaEvento = new Date(e.fechaInicio);
-                    fechaEvento.setHours(0, 0, 0, 0);
-                    return fechaEvento >= inicio;
-                });
+                eventos = eventos.filter(e => e.fechaInicio >= fechaInicio);
             }
-            
             if (fechaFin) {
-                const fin = new Date(fechaFin);
-                fin.setHours(23, 59, 59, 999);
-                eventos = eventos.filter(e => {
-                    const fechaEvento = new Date(e.fechaInicio);
-                    fechaEvento.setHours(0, 0, 0, 0);
-                    return fechaEvento <= fin;
-                });
+                eventos = eventos.filter(e => e.fechaInicio <= fechaFin);
             }
             
             const orden = document.getElementById('orden-eventos')?.value || 'asc';
-            eventos.sort((a,b) => orden === 'asc' ? new Date(a.fechaInicio) - new Date(b.fechaInicio) : new Date(b.fechaInicio) - new Date(a.fechaInicio));
+            eventos.sort((a, b) => {
+                if (orden === 'asc') {
+                    return a.fechaInicio.localeCompare(b.fechaInicio);
+                } else {
+                    return b.fechaInicio.localeCompare(a.fechaInicio);
+                }
+            });
             
             const container = document.getElementById('resultados-lista');
             if (!container) return;
@@ -378,12 +409,141 @@
             });
         }
 
+        // Variables globales para filtro móvil
+        let originalFilterState = {};
+
+        function saveOriginalFilterState() {
+            originalFilterState = {};
+            
+            const categorias = document.querySelectorAll('.filters-sidebar .filtro-categoria');
+            categorias.forEach(cb => {
+                originalFilterState[`cat_${cb.value}`] = cb.checked;
+            });
+            
+            const fechaInicio = document.getElementById('fecha-inicio');
+            const fechaFin = document.getElementById('fecha-fin');
+            if (fechaInicio) originalFilterState.fechaInicio = fechaInicio.value;
+            if (fechaFin) originalFilterState.fechaFin = fechaFin.value;
+            
+            const aptoMenores = document.getElementById('filtro-apto-menores');
+            const aireLibre = document.getElementById('filtro-aire-libre');
+            if (aptoMenores) originalFilterState.aptoMenores = aptoMenores.checked;
+            if (aireLibre) originalFilterState.aireLibre = aireLibre.checked;
+            
+            const ordenSelect = document.getElementById('orden-eventos');
+            if (ordenSelect) originalFilterState.orden = ordenSelect.value;
+        }
+
+        function syncOriginalToMobile() {
+            const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+            mobileCategorias.forEach(cb => {
+                const originalValue = originalFilterState[`cat_${cb.value}`];
+                if (originalValue !== undefined) cb.checked = originalValue;
+            });
+            
+            const mobileFechaInicio = document.querySelector('#mobileFiltersContent #fecha-inicio');
+            const mobileFechaFin = document.querySelector('#mobileFiltersContent #fecha-fin');
+            if (mobileFechaInicio && originalFilterState.fechaInicio !== undefined) mobileFechaInicio.value = originalFilterState.fechaInicio;
+            if (mobileFechaFin && originalFilterState.fechaFin !== undefined) mobileFechaFin.value = originalFilterState.fechaFin;
+            
+            const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+            const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+            if (mobileApto && originalFilterState.aptoMenores !== undefined) mobileApto.checked = originalFilterState.aptoMenores;
+            if (mobileAire && originalFilterState.aireLibre !== undefined) mobileAire.checked = originalFilterState.aireLibre;
+            
+            const mobileOrden = document.querySelector('#mobileFiltersContent #orden-eventos');
+            if (mobileOrden && originalFilterState.orden !== undefined) mobileOrden.value = originalFilterState.orden;
+        }
+
+        function syncMobileFiltersToOriginal() {
+            const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+            mobileCategorias.forEach(cb => {
+                const originalCb = document.querySelector(`.filters-sidebar .filtro-categoria[value="${cb.value}"]`);
+                if (originalCb && originalCb.checked !== cb.checked) {
+                    originalCb.checked = cb.checked;
+                    originalCb.dispatchEvent(new Event('change'));
+                }
+            });
+            
+            const mobileFechaInicio = document.querySelector('#mobileFiltersContent #fecha-inicio');
+            const mobileFechaFin = document.querySelector('#mobileFiltersContent #fecha-fin');
+            const originalFechaInicio = document.getElementById('fecha-inicio');
+            const originalFechaFin = document.getElementById('fecha-fin');
+            
+            if (mobileFechaInicio && originalFechaInicio && originalFechaInicio.value !== mobileFechaInicio.value) {
+                originalFechaInicio.value = mobileFechaInicio.value;
+                originalFechaInicio.dispatchEvent(new Event('change'));
+            }
+            if (mobileFechaFin && originalFechaFin && originalFechaFin.value !== mobileFechaFin.value) {
+                originalFechaFin.value = mobileFechaFin.value;
+                originalFechaFin.dispatchEvent(new Event('change'));
+            }
+            
+            const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+            const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+            const originalApto = document.getElementById('filtro-apto-menores');
+            const originalAire = document.getElementById('filtro-aire-libre');
+            
+            if (mobileApto && originalApto && originalApto.checked !== mobileApto.checked) {
+                originalApto.checked = mobileApto.checked;
+                originalApto.dispatchEvent(new Event('change'));
+            }
+            if (mobileAire && originalAire && originalAire.checked !== mobileAire.checked) {
+                originalAire.checked = mobileAire.checked;
+                originalAire.dispatchEvent(new Event('change'));
+            }
+            
+            const mobileOrden = document.querySelector('#mobileFiltersContent #orden-eventos');
+            const originalOrden = document.getElementById('orden-eventos');
+            if (mobileOrden && originalOrden && originalOrden.value !== mobileOrden.value) {
+                originalOrden.value = mobileOrden.value;
+                originalOrden.dispatchEvent(new Event('change'));
+            }
+        }
+
+        function attachMobileEvents() {
+            const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+            mobileCategorias.forEach(cb => {
+                cb.removeEventListener('change', handleMobileCategoryChange);
+                cb.addEventListener('change', handleMobileCategoryChange);
+            });
+            
+            const mobileFechaInicio = document.querySelector('#mobileFiltersContent #fecha-inicio');
+            const mobileFechaFin = document.querySelector('#mobileFiltersContent #fecha-fin');
+            const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+            const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+            const mobileOrden = document.querySelector('#mobileFiltersContent #orden-eventos');
+            
+            if (mobileFechaInicio) mobileFechaInicio.addEventListener('change', () => syncToOriginalAndClose());
+            if (mobileFechaFin) mobileFechaFin.addEventListener('change', () => syncToOriginalAndClose());
+            if (mobileApto) mobileApto.addEventListener('change', () => syncToOriginalAndClose());
+            if (mobileAire) mobileAire.addEventListener('change', () => syncToOriginalAndClose());
+            if (mobileOrden) mobileOrden.addEventListener('change', () => syncToOriginalAndClose());
+        }
+
+        function handleMobileCategoryChange(e) {
+            const originalCb = document.querySelector(`.filters-sidebar .filtro-categoria[value="${e.target.value}"]`);
+            if (originalCb) {
+                originalCb.checked = e.target.checked;
+                originalCb.dispatchEvent(new Event('change'));
+            }
+        }
+
+        function syncToOriginalAndClose() {
+            syncMobileFiltersToOriginal();
+            setTimeout(() => {
+                if (window.mobileFiltersOverlay) {
+                    window.mobileFiltersOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }, 100);
+        }
+
         // ==================== FILTRO MÓVIL ====================
         function initMobileFilter() {
             const mobileFilterBtn = document.getElementById('mobileFilterBtn');
             if (!mobileFilterBtn) return;
             
-            // Crear overlay si no existe
             if (!document.querySelector('.mobile-filters-overlay')) {
                 const overlay = document.createElement('div');
                 overlay.className = 'mobile-filters-overlay';
@@ -401,7 +561,6 @@
                 `;
                 document.body.appendChild(overlay);
                 
-                // Estilos del panel
                 const style = document.createElement('style');
                 style.textContent = `
                     .mobile-filters-overlay {
@@ -445,6 +604,7 @@
                         padding: 1rem;
                         border-bottom: 1px solid var(--color-border);
                         background: var(--color-surface);
+                        flex-shrink: 0;
                     }
                     .mobile-filters-header h3 {
                         margin: 0;
@@ -481,6 +641,18 @@
                 
                 const closeBtn = document.getElementById('mobileFiltersClose');
                 const overlayEl = document.getElementById('mobileFiltersOverlay');
+                const closeIcon = document.querySelector('#mobileFiltersClose img');
+                
+                function updateCloseIcon() {
+                    const isDark = document.body.classList.contains('dark-mode');
+                    if (closeIcon) {
+                        closeIcon.src = isDark ? 'resources/icons_dark/icon_x.png' : 'resources/icons_light/icon_x.png';
+                    }
+                }
+                
+                const observer = new MutationObserver(updateCloseIcon);
+                observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                updateCloseIcon();
                 
                 closeBtn?.addEventListener('click', () => {
                     overlayEl.classList.remove('active');
@@ -494,35 +666,23 @@
                     }
                 });
                 
-                // Actualizar icono de cerrar según tema
-                const updateCloseIcon = () => {
-                    const closeIcon = document.querySelector('#mobileFiltersClose img');
-                    if (closeIcon) {
-                        const isDark = document.body.classList.contains('dark-mode');
-                        closeIcon.src = isDark ? 'resources/icons_dark/icon_x.png' : 'resources/icons_light/icon_x.png';
-                    }
-                };
-                
-                const observer = new MutationObserver(updateCloseIcon);
-                observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-                updateCloseIcon();
-                
                 window.mobileFiltersOverlay = overlayEl;
             }
             
-            // Evento click del botón
-            mobileFilterBtn.addEventListener('click', () => {
+            const newFilterBtn = mobileFilterBtn.cloneNode(true);
+            mobileFilterBtn.parentNode.replaceChild(newFilterBtn, mobileFilterBtn);
+            
+            newFilterBtn.addEventListener('click', () => {
                 const filtersSidebar = document.querySelector('.filters-sidebar');
                 const mobileContent = document.getElementById('mobileFiltersContent');
                 
                 if (filtersSidebar && mobileContent) {
-                    // Clonar los filtros
+                    saveOriginalFilterState();
                     mobileContent.innerHTML = '';
                     const clone = filtersSidebar.cloneNode(true);
                     clone.classList.add('filters-sidebar');
                     mobileContent.appendChild(clone);
                     
-                    // Añadir el selector de orden al inicio
                     const ordenador = document.querySelector('.resultados-orden');
                     if (ordenador && !mobileContent.querySelector('.resultados-orden-clone')) {
                         const ordenadorClone = ordenador.cloneNode(true);
@@ -530,13 +690,50 @@
                         mobileContent.insertBefore(ordenadorClone, mobileContent.firstChild);
                     }
                     
-                    // Re-sincronizar eventos
-                    reinitializeFilterEventsMobile();
+                    syncOriginalToMobile();
+                    attachMobileEvents();
                 }
-                
                 window.mobileFiltersOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
             });
+        }
+
+        function attachMobileEvents() {
+            const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+            mobileCategorias.forEach(cb => {
+                cb.removeEventListener('change', handleMobileCategoryChange);
+                cb.addEventListener('change', handleMobileCategoryChange);
+            });
+            
+            const mobileFechaInicio = document.querySelector('#mobileFiltersContent #fecha-inicio');
+            const mobileFechaFin = document.querySelector('#mobileFiltersContent #fecha-fin');
+            const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+            const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+            const mobileOrden = document.querySelector('#mobileFiltersContent #orden-eventos');
+            
+            if (mobileFechaInicio) mobileFechaInicio.addEventListener('change', () => syncToOriginalAndClose());
+            if (mobileFechaFin) mobileFechaFin.addEventListener('change', () => syncToOriginalAndClose());
+            if (mobileApto) mobileApto.addEventListener('change', () => syncToOriginalAndClose());
+            if (mobileAire) mobileAire.addEventListener('change', () => syncToOriginalAndClose());
+            if (mobileOrden) mobileOrden.addEventListener('change', () => syncToOriginalAndClose());
+        }
+
+        function handleMobileCategoryChange(e) {
+            const originalCb = document.querySelector(`.filters-sidebar .filtro-categoria[value="${e.target.value}"]`);
+            if (originalCb) {
+                originalCb.checked = e.target.checked;
+                originalCb.dispatchEvent(new Event('change'));
+            }
+        }
+
+        function syncToOriginalAndClose() {
+            syncMobileFiltersToOriginal();
+            setTimeout(() => {
+                if (window.mobileFiltersOverlay) {
+                    window.mobileFiltersOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }, 100);
         }
 
         function reinitializeFilterEventsMobile() {
@@ -578,7 +775,7 @@
                 });
             }
             
-            // Checkboxes de características
+            // Checkboxes de características - IMPORTANTE: añadir estos
             const aptoMenores = document.getElementById('filtro-apto-menores');
             const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
             if (aptoMenores && mobileApto) {
@@ -598,37 +795,65 @@
             }
         }
 
-        // Llamar a la función al cargar
+        // Llamar a la función al cargar (asegúrate de que se ejecute después de que el DOM esté listo)
         document.addEventListener('DOMContentLoaded', () => {
             initMobileFilter();
         });
+
+        function attachMobileEventsCalendario() {
+            const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+            mobileCategorias.forEach(cb => {
+                cb.removeEventListener('change', handleMobileCategoryChangeCalendario);
+                cb.addEventListener('change', handleMobileCategoryChangeCalendario);
+            });
+            
+            const mobileModoFecha = document.querySelector('#mobileFiltersContent #modo-fecha');
+            const mobileFechaEspecifica = document.querySelector('#mobileFiltersContent #fecha-especifica');
+            const mobileFechaInicioRango = document.querySelector('#mobileFiltersContent #fecha-inicio-rango');
+            const mobileFechaFinRango = document.querySelector('#mobileFiltersContent #fecha-fin-rango');
+            const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+            const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+            const mobileOrden = document.querySelector('#mobileFiltersContent #orden-eventos');
+            
+            if (mobileModoFecha) mobileModoFecha.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileFechaEspecifica) mobileFechaEspecifica.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileFechaInicioRango) mobileFechaInicioRango.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileFechaFinRango) mobileFechaFinRango.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileApto) mobileApto.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileAire) mobileAire.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileOrden) mobileOrden.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+        }
+
+        function handleMobileCategoryChangeCalendario(e) {
+            const originalCb = document.querySelector(`.filters-sidebar .filtro-categoria[value="${e.target.value}"]`);
+            if (originalCb) {
+                originalCb.checked = e.target.checked;
+                originalCb.dispatchEvent(new Event('change'));
+            }
+        }
+
+        function syncToOriginalAndCloseCalendario() {
+            syncMobileFiltersToOriginalCalendario();
+            setTimeout(() => {
+                if (window.mobileFiltersOverlay) {
+                    window.mobileFiltersOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }, 100);
+        }
+
+        // Sincronizar orden móvil con el original
+        const ordenMobile = document.getElementById('orden-eventos-mobile');
+        const ordenOriginal = document.getElementById('orden-eventos');
+        if (ordenMobile && ordenOriginal) {
+            ordenMobile.addEventListener('change', () => {
+                ordenOriginal.value = ordenMobile.value;
+                ordenOriginal.dispatchEvent(new Event('change'));
+            });
+            ordenOriginal.addEventListener('change', () => {
+                ordenMobile.value = ordenOriginal.value;
+            });
+        }
     </script>
-        <style>
-        .mobile-filter-btn {
-            display: none;
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 8px;
-            padding: 0.5rem;
-            cursor: pointer;
-        }
-        .mobile-filter-btn img {
-            width: 20px;
-            height: 20px;
-        }
-        @media (max-width: 700px) {
-            .filters-sidebar {
-                display: none;
-            }
-            .mobile-filter-btn {
-                display: flex;
-            }
-        }
-        @media (min-width: 701px) {
-            .mobile-filter-btn {
-                display: none;
-            }
-        }
-    </style>
 </body>
 </html>

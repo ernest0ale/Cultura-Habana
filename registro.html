@@ -146,6 +146,15 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
+        .pref-card {
+            background: var(--color-bg);
+            border: 2px solid var(--color-border);
+            border-radius: 12px;
+            padding: 0.6rem 0.3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
 
         .pref-card .pref-emoji {
             font-size: 1.5rem;
@@ -165,6 +174,24 @@
             cursor: pointer;
             font-size: 0.8rem;
             margin-bottom: 1rem;
+        }
+
+        .pref-card {
+            background: var(--color-primary, rgb(2, 90, 138));
+            border: 2px solid var(--color-primary, rgb(2, 90, 138));
+            border-radius: 12px;
+            padding: 0.6rem 0.3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        /* Color cuando ESTÁ seleccionada (el usuario la quiere) */
+        .pref-card.selected {
+            background: var(--color-border);
+            border-color: var(--color-border);
+            color: var(--color-text-primary);
         }
     </style>
 </head>
@@ -240,7 +267,7 @@
         </div>
     </div>
 
-    <script src="backend/data.js"></script>
+    <script src="data.js"></script>
     <script>
         // ==================== TEMA OSCURO PERSISTENTE ====================
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -290,19 +317,17 @@
         function renderizarPreferencias() {
             const container = document.getElementById('preferences-grid');
             container.innerHTML = categoriasConEmojis.map(cat => `
-                <div class="pref-card" data-categoria="${cat.nombre}" style="cursor: pointer;">
+                <div class="pref-card" data-categoria="${cat.nombre}">
                     <span class="pref-emoji">${cat.emoji}</span>
                     <span class="pref-name">${cat.nombre}</span>
                 </div>
             `).join('');
             
-            // Seleccionar todas por defecto
-            const cards = document.querySelectorAll('.pref-card');
-            cards.forEach(card => {
-                card.classList.add('selected');
+            // Ninguna está seleccionada por defecto (todas azules)
+            document.querySelectorAll('.pref-card').forEach(card => {
                 card.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    card.classList.toggle('selected');
+                    card.classList.toggle('selected'); // Al hacer clic, se vuelve gris
                 });
             });
         }
@@ -312,17 +337,17 @@
             document.querySelectorAll('.pref-card.selected').forEach(card => {
                 selected.push(card.getAttribute('data-categoria'));
             });
-            return selected;
+            return selected; // Devuelve las categorías que el usuario seleccionó (las grises)
         }
         
         document.getElementById('selectAllBtn')?.addEventListener('click', () => {
             const cards = document.querySelectorAll('.pref-card');
             const allSelected = Array.from(cards).every(card => card.classList.contains('selected'));
             cards.forEach(card => {
-                if (allSelected) {
-                    card.classList.remove('selected');
+                if (!allSelected) {
+                    card.classList.add('selected'); // Todas grises (seleccionadas)
                 } else {
-                    card.classList.add('selected');
+                    card.classList.remove('selected'); // Todas azules (deseleccionadas)
                 }
             });
         });

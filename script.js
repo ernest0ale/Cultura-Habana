@@ -16,7 +16,7 @@ function isMobile() {
 }
 
 // ==================== FUNCIONES COMPLEMENTARIAS ====================
-function formatFechaShort(fechaStr) {
+/*function formatFechaShort(fechaStr) {
     const fecha = new Date(fechaStr);
     return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
@@ -27,7 +27,7 @@ function formatFechaDDMMYYYY(fechaStr) {
     const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
     const anio = fecha.getFullYear();
     return `${dia}/${mes}/${anio}`;
-}
+}*/
 
 function getIconoCategoria(categoria) {
     const iconos = {
@@ -562,10 +562,12 @@ function initAvatar() {
         `;
         avatarSubmenu.innerHTML = `
             <a href="perfil.html" class="avatar-submenu-item">
+                <img class="avatar-submenu-icon" src="resources/icons_light/cog.png" alt="config" style="width: 16px; height: 16px;">
                 <span>Configuración</span>
             </a>
             <div class="avatar-submenu-divider"></div>
             <a href="#" id="logoutSubmenuBtn" class="avatar-submenu-item">
+                <img class="avatar-submenu-icon" src="resources/icons_light/arrow-out-right-square-half.png" alt="salir" style="width: 16px; height: 16px;">
                 <span>Cerrar sesión</span>
             </a>
         `;
@@ -1055,7 +1057,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function getEtiquetaAptoMenores(apto) {
+/*function getEtiquetaAptoMenores(apto) {
     if (apto === true) return { texto: 'Menores', clase: 'badge-menores-si' };
     return { texto: 'Adultos', clase: 'badge-menores-no' };
 }
@@ -1063,7 +1065,7 @@ function getEtiquetaAptoMenores(apto) {
 function getEtiquetaAireLibre(aire) {
     if (aire === true) return { texto: 'Al aire libre', clase: 'badge-aire-si' };
     return { texto: 'Espacio cerrado', clase: 'badge-aire-no' };
-}
+}*/
 
 // En script.js - Función para obtener eventos guardados
 function getEventosGuardados() {
@@ -1115,6 +1117,18 @@ function initLandingPage(currentPage) {
     
     // Configurar búsqueda móvil
     initLandingMobileSearch();
+}
+
+function actualizarIconosSubmenuAvatar() {
+    const isDark = document.body.classList.contains('dark-mode');
+    const icons = document.querySelectorAll('.avatar-submenu-icon');
+    icons.forEach(icon => {
+        if (icon.src.includes('cog.png')) {
+            icon.src = isDark ? 'resources/icons_dark/cog.png' : 'resources/icons_light/cog.png';
+        } else if (icon.src.includes('arrow-out-right-square-half.png')) {
+            icon.src = isDark ? 'resources/icons_dark/arrow-out-right-square-half.png' : 'resources/icons_light/arrow-out-right-square-half.png';
+        }
+    });
 }
 
 function initLandingMobileSearch() {

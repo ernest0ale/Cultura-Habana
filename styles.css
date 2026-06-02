@@ -994,10 +994,10 @@ body.dark-mode .footer {
     border: none;
 }
 
-.badge-menores-si { background: #27ae60; }
-.badge-menores-no { background: #e67e22; }
-.badge-aire-si { background: #97cc2e; }
-.badge-aire-no { background: #3498db; }
+.badge-menores-si { background: #27ae60; }      /* Verde - Todos */
+.badge-menores-no { background: #e67e22; }      /* Naranja - Adultos */
+.badge-aire-si { background: #3498db; }         /* Azul - Exterior */
+.badge-aire-no { background: #7f8c8d; }         /* Gris - Interior */
 
 .caracteristica {
     display: inline-block;
@@ -2990,131 +2990,50 @@ body.dark-mode .social-icon-link {
     }
 }
 
-/* ========== BOTÓN DE FILTROS MÓVIL ========== */
-.mobile-filter-btn {
-    display: none;
-    background: none;
-    border: 1px solid var(--color-border);
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
+/* Asegurar que los filtros se vean correctamente en móvil */
+.mobile-filters-content .filters-sidebar {
+    display: block !important;
 }
 
-.mobile-filter-btn:hover {
-    background: var(--color-bg);
-}
-
-.mobile-filter-btn img {
-    width: 18px;
-    height: 18px;
-}
-
-/* Ocultar el orden en móvil */
-@media (max-width: 700px) {
-    .mobile-filter-btn {
-        display: flex;
-    }
-    .resultados-orden {
-        display: none;
-    }
-}
-
-/* ========== FILTROS MÓVIL (SLIDE FROM RIGHT) ========== */
-.mobile-filters-overlay {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 2000;
-    display: none;
-    justify-content: flex-end;
-}
-
-.mobile-filters-overlay.active {
+.mobile-filters-content .categorias-group {
     display: flex;
-}
-
-.mobile-filters-panel {
-    width: 85%;
-    max-width: 320px;
-    height: 100%;
-    background: var(--color-surface);
-    box-shadow: -2px 0 10px var(--shadow-border);
-    display: flex;
-    flex-direction: column;
-    animation: slideInRight 0.3s ease;
-}
-
-@keyframes slideInRight {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0); }
-}
-
-.mobile-filters-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-border);
-}
-
-.mobile-filters-header h3 {
-    margin: 0;
-    color: var(--color-text-primary);
-}
-
-.mobile-filters-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: background 0.2s ease;
-}
-
-.mobile-filters-close:hover {
-    background: var(--color-bg);
-}
-
-.mobile-filters-close img {
-    width: 20px;
-    height: 20px;
-}
-
-.mobile-filters-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem;
-}
-
-/* Estilo para el ordenador dentro del panel móvil */
-.filtro-orden-movil {
+    flex-wrap: wrap;
+    gap: 0.5rem;
     margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--color-border);
 }
 
-.filtro-orden-movil label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
+.mobile-filters-content .categoria-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.8rem;
+    background: var(--color-bg);
+    border-radius: 30px;
+    font-size: 0.9rem;
+    cursor: pointer;
 }
 
-.filtro-orden-movil select {
+.mobile-filters-content .fecha-input {
     width: 100%;
     padding: 0.6rem;
     border: 1px solid var(--color-border);
     border-radius: 12px;
     background: var(--color-bg);
-    color: var(--color-text-primary);
+    margin-bottom: 0.8rem;
+}
+
+.mobile-filters-content .modo-select {
+    width: 100%;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg);
+    margin-bottom: 1rem;
+}
+
+.mobile-filters-content .divisor-filtros {
+    margin: 1rem 0;
+    border: none;
+    height: 1px;
+    background: var(--color-border);
 }

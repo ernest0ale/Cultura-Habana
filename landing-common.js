@@ -26,30 +26,27 @@ let isDarkModeLanding = localStorage.getItem('darkMode') === 'true';
 function updateLandingIconsAndLogo() {
     const isDark = document.body.classList.contains('dark-mode');
     
-    // Actualizar iconos del navbar
-    const searchIcon = document.querySelector('#landingSearchTrigger img');
-    const themeIcon = document.getElementById('landingThemeIcon');
     const menuIcon = document.querySelector('#landingMenuToggle img');
-    
-    if (searchIcon) {
-        searchIcon.src = isDark ? 'resources/icons_dark/search.png' : 'resources/icons_light/search.png';
-    }
-    if (themeIcon) {
-        themeIcon.src = isDark ? 'resources/icons_dark/sun.png' : 'resources/icons_light/moon.png';
-    }
     if (menuIcon) {
         menuIcon.src = isDark ? 'resources/icons_dark/menu.png' : 'resources/icons_light/menu.png';
     }
     
-    // Actualizar logo
-    const logoImg = document.querySelector('.landing-logo img');
+    const logoImg = document.querySelector('.landing-logo img.landing-logo-light');
     if (logoImg) {
         logoImg.src = isDark ? 'resources/aguacero_cuba_darklogo_trasnparente.png' : 'resources/aguacero_cuba_logo_trasnparente.png';
     }
     
-    // Actualizar iconos del sidebar móvil
-    const sidebarLinks = document.querySelectorAll('.landing-sidebar-link img');
-    sidebarLinks.forEach(img => {
+    const searchIcon = document.querySelector('#landingSearchTrigger img');
+    if (searchIcon) {
+        searchIcon.src = isDark ? 'resources/icons_dark/search.png' : 'resources/icons_light/search.png';
+    }
+    
+    const themeIcon = document.getElementById('landingThemeIcon');
+    if (themeIcon) {
+        themeIcon.src = isDark ? 'resources/icons_dark/sun.png' : 'resources/icons_light/moon.png';
+    }
+    
+    document.querySelectorAll('.landing-sidebar-link img').forEach(img => {
         const src = img.src;
         if (src.includes('home-alt')) {
             img.src = isDark ? 'resources/icons_dark/home-alt.png' : 'resources/icons_light/home-alt.png';
@@ -64,20 +61,17 @@ function updateLandingIconsAndLogo() {
         }
     });
     
-    // Actualizar iconos del dropdown de categorías
-    const dropdownBtnIcon = document.querySelector('#landingCategoriesBtn img');
-    if (dropdownBtnIcon && dropdownBtnIcon.src.includes('price-tag-alt')) {
-        dropdownBtnIcon.src = isDark ? 'resources/icons_dark/price-tag-alt.png' : 'resources/icons_light/price-tag-alt.png';
+    const categoryIcon = document.querySelector('#landingCategoriesBtn img:first-child');
+    if (categoryIcon && categoryIcon.src && categoryIcon.src.includes('price-tag-alt')) {
+        categoryIcon.src = isDark ? 'resources/icons_dark/price-tag-alt.png' : 'resources/icons_light/price-tag-alt.png';
     }
     
-    const dropdownChevron = document.querySelector('#landingCategoriesBtn img:last-child');
-    if (dropdownChevron && dropdownChevron.src.includes('chevron-down')) {
-        dropdownChevron.src = isDark ? 'resources/icons_dark/chevron-down.png' : 'resources/icons_light/chevron-down.png';
+    const chevronIcon = document.querySelector('#landingCategoriesBtn img:last-child');
+    if (chevronIcon && chevronIcon.src && chevronIcon.src.includes('chevron-down')) {
+        chevronIcon.src = isDark ? 'resources/icons_dark/chevron-down.png' : 'resources/icons_light/chevron-down.png';
     }
     
-    // Actualizar iconos de navegación principal
-    const navLinks = document.querySelectorAll('.landing-nav-link img');
-    navLinks.forEach(img => {
+    document.querySelectorAll('.landing-nav-link img').forEach(img => {
         const src = img.src;
         if (src.includes('home-alt')) {
             img.src = isDark ? 'resources/icons_dark/home-alt.png' : 'resources/icons_light/home-alt.png';
@@ -99,7 +93,6 @@ function initLandingTheme() {
     updateLandingIconsAndLogo();
     
     const themeBtn = document.getElementById('landingThemeBtn');
-    
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
             isDarkModeLanding = !isDarkModeLanding;
@@ -111,7 +104,6 @@ function initLandingTheme() {
             }
             updateLandingIconsAndLogo();
             
-            // Actualizar mapa si existe
             if (typeof window.updateMapTheme === 'function') {
                 window.updateMapTheme();
             }
@@ -122,7 +114,6 @@ function initLandingTheme() {
     }
 }
 
-// Inicializar buscador con overlay
 function initLandingSearch() {
     const searchTrigger = document.getElementById('landingSearchTrigger');
     if (!searchTrigger) return;
@@ -196,7 +187,6 @@ function initLandingSearch() {
     });
 }
 
-// Inicializar dropdown de categorías
 function initLandingCategories() {
     const dropdownBtn = document.getElementById('landingCategoriesBtn');
     const dropdown = document.getElementById('landingCategoriesDropdown');
@@ -226,7 +216,6 @@ function initLandingCategories() {
     });
 }
 
-// Inicializar menú lateral móvil
 function initLandingMobileMenu() {
     const menuToggle = document.getElementById('landingMenuToggle');
     const sidebar = document.getElementById('landingSidebar');
@@ -276,8 +265,194 @@ function initLandingMobileMenu() {
     });
 }
 
-// ==================== FILTROS MÓVIL ====================
-function initMobileFilters() {
+// ==================== VARIABLES GLOBALES PARA FILTROS ====================
+let originalFilterState = {};
+
+function saveOriginalFilterState() {
+    originalFilterState = {};
+    
+    const categorias = document.querySelectorAll('.filters-sidebar .filtro-categoria');
+    categorias.forEach(cb => {
+        originalFilterState[`cat_${cb.value}`] = cb.checked;
+    });
+    
+    const fechaInicio = document.getElementById('fecha-inicio');
+    const fechaFin = document.getElementById('fecha-fin');
+    if (fechaInicio) originalFilterState.fechaInicio = fechaInicio.value;
+    if (fechaFin) originalFilterState.fechaFin = fechaFin.value;
+    
+    const fechaEspecifica = document.getElementById('fecha-especifica');
+    const fechaInicioRango = document.getElementById('fecha-inicio-rango');
+    const fechaFinRango = document.getElementById('fecha-fin-rango');
+    const modoFecha = document.getElementById('modo-fecha');
+    const aptoMenores = document.getElementById('filtro-apto-menores');
+    const aireLibre = document.getElementById('filtro-aire-libre');
+    
+    if (fechaEspecifica) originalFilterState.fechaEspecifica = fechaEspecifica.value;
+    if (fechaInicioRango) originalFilterState.fechaInicioRango = fechaInicioRango.value;
+    if (fechaFinRango) originalFilterState.fechaFinRango = fechaFinRango.value;
+    if (modoFecha) originalFilterState.modoFecha = modoFecha.value;
+    if (aptoMenores) originalFilterState.aptoMenores = aptoMenores.checked;
+    if (aireLibre) originalFilterState.aireLibre = aireLibre.checked;
+}
+
+function syncOriginalToMobile() {
+    const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+    mobileCategorias.forEach(cb => {
+        const originalValue = originalFilterState[`cat_${cb.value}`];
+        if (originalValue !== undefined) cb.checked = originalValue;
+    });
+    
+    const mobileFechaInicio = document.querySelector('#mobileFiltersContent #fecha-inicio');
+    const mobileFechaFin = document.querySelector('#mobileFiltersContent #fecha-fin');
+    if (mobileFechaInicio && originalFilterState.fechaInicio !== undefined) mobileFechaInicio.value = originalFilterState.fechaInicio;
+    if (mobileFechaFin && originalFilterState.fechaFin !== undefined) mobileFechaFin.value = originalFilterState.fechaFin;
+    
+    const mobileFechaEspecifica = document.querySelector('#mobileFiltersContent #fecha-especifica');
+    const mobileFechaInicioRango = document.querySelector('#mobileFiltersContent #fecha-inicio-rango');
+    const mobileFechaFinRango = document.querySelector('#mobileFiltersContent #fecha-fin-rango');
+    const mobileModoFecha = document.querySelector('#mobileFiltersContent #modo-fecha');
+    const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+    const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+    
+    if (mobileFechaEspecifica && originalFilterState.fechaEspecifica !== undefined) mobileFechaEspecifica.value = originalFilterState.fechaEspecifica;
+    if (mobileFechaInicioRango && originalFilterState.fechaInicioRango !== undefined) mobileFechaInicioRango.value = originalFilterState.fechaInicioRango;
+    if (mobileFechaFinRango && originalFilterState.fechaFinRango !== undefined) mobileFechaFinRango.value = originalFilterState.fechaFinRango;
+    if (mobileModoFecha && originalFilterState.modoFecha !== undefined) mobileModoFecha.value = originalFilterState.modoFecha;
+    if (mobileApto && originalFilterState.aptoMenores !== undefined) mobileApto.checked = originalFilterState.aptoMenores;
+    if (mobileAire && originalFilterState.aireLibre !== undefined) mobileAire.checked = originalFilterState.aireLibre;
+    
+    if (mobileModoFecha) mobileModoFecha.dispatchEvent(new Event('change'));
+}
+
+function syncMobileFiltersToOriginal() {
+    const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+    mobileCategorias.forEach(cb => {
+        const originalCb = document.querySelector(`.filters-sidebar .filtro-categoria[value="${cb.value}"]`);
+        if (originalCb && originalCb.checked !== cb.checked) {
+            originalCb.checked = cb.checked;
+            originalCb.dispatchEvent(new Event('change'));
+        }
+    });
+    
+    const mobileFechaInicio = document.querySelector('#mobileFiltersContent #fecha-inicio');
+    const mobileFechaFin = document.querySelector('#mobileFiltersContent #fecha-fin');
+    const originalFechaInicio = document.getElementById('fecha-inicio');
+    const originalFechaFin = document.getElementById('fecha-fin');
+    
+    if (mobileFechaInicio && originalFechaInicio && originalFechaInicio.value !== mobileFechaInicio.value) {
+        originalFechaInicio.value = mobileFechaInicio.value;
+        originalFechaInicio.dispatchEvent(new Event('change'));
+    }
+    if (mobileFechaFin && originalFechaFin && originalFechaFin.value !== mobileFechaFin.value) {
+        originalFechaFin.value = mobileFechaFin.value;
+        originalFechaFin.dispatchEvent(new Event('change'));
+    }
+    
+    const mobileFechaEspecifica = document.querySelector('#mobileFiltersContent #fecha-especifica');
+    const mobileFechaInicioRango = document.querySelector('#mobileFiltersContent #fecha-inicio-rango');
+    const mobileFechaFinRango = document.querySelector('#mobileFiltersContent #fecha-fin-rango');
+    const mobileModoFecha = document.querySelector('#mobileFiltersContent #modo-fecha');
+    
+    const originalFechaEspecifica = document.getElementById('fecha-especifica');
+    const originalFechaInicioRango = document.getElementById('fecha-inicio-rango');
+    const originalFechaFinRango = document.getElementById('fecha-fin-rango');
+    const originalModoFecha = document.getElementById('modo-fecha');
+    
+    if (mobileFechaEspecifica && originalFechaEspecifica && originalFechaEspecifica.value !== mobileFechaEspecifica.value) {
+        originalFechaEspecifica.value = mobileFechaEspecifica.value;
+        originalFechaEspecifica.dispatchEvent(new Event('change'));
+    }
+    if (mobileFechaInicioRango && originalFechaInicioRango && originalFechaInicioRango.value !== mobileFechaInicioRango.value) {
+        originalFechaInicioRango.value = mobileFechaInicioRango.value;
+        originalFechaInicioRango.dispatchEvent(new Event('change'));
+    }
+    if (mobileFechaFinRango && originalFechaFinRango && originalFechaFinRango.value !== mobileFechaFinRango.value) {
+        originalFechaFinRango.value = mobileFechaFinRango.value;
+        originalFechaFinRango.dispatchEvent(new Event('change'));
+    }
+    if (mobileModoFecha && originalModoFecha && originalModoFecha.value !== mobileModoFecha.value) {
+        originalModoFecha.value = mobileModoFecha.value;
+        originalModoFecha.dispatchEvent(new Event('change'));
+    }
+    
+    const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+    const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+    const originalApto = document.getElementById('filtro-apto-menores');
+    const originalAire = document.getElementById('filtro-aire-libre');
+    
+    if (mobileApto && originalApto && originalApto.checked !== mobileApto.checked) {
+        originalApto.checked = mobileApto.checked;
+        originalApto.dispatchEvent(new Event('change'));
+    }
+    if (mobileAire && originalAire && originalAire.checked !== mobileAire.checked) {
+        originalAire.checked = mobileAire.checked;
+        originalAire.dispatchEvent(new Event('change'));
+    }
+}
+
+function attachMobileChangeEvents() {
+    const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+    mobileCategorias.forEach(cb => {
+        cb.removeEventListener('change', handleMobileCategoryChange);
+        cb.addEventListener('change', handleMobileCategoryChange);
+    });
+    
+    const mobileFechaInicio = document.querySelector('#mobileFiltersContent #fecha-inicio');
+    const mobileFechaFin = document.querySelector('#mobileFiltersContent #fecha-fin');
+    const mobileFechaEspecifica = document.querySelector('#mobileFiltersContent #fecha-especifica');
+    const mobileFechaInicioRango = document.querySelector('#mobileFiltersContent #fecha-inicio-rango');
+    const mobileFechaFinRango = document.querySelector('#mobileFiltersContent #fecha-fin-rango');
+    const mobileModoFecha = document.querySelector('#mobileFiltersContent #modo-fecha');
+    const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+    const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+    
+    if (mobileFechaInicio) mobileFechaInicio.addEventListener('change', () => syncToOriginalAndClose());
+    if (mobileFechaFin) mobileFechaFin.addEventListener('change', () => syncToOriginalAndClose());
+    if (mobileFechaEspecifica) mobileFechaEspecifica.addEventListener('change', () => syncToOriginalAndClose());
+    if (mobileFechaInicioRango) mobileFechaInicioRango.addEventListener('change', () => syncToOriginalAndClose());
+    if (mobileFechaFinRango) mobileFechaFinRango.addEventListener('change', () => syncToOriginalAndClose());
+    if (mobileModoFecha) mobileModoFecha.addEventListener('change', () => {
+        syncToOriginalAndClose();
+        if (mobileModoFecha.value === 'rango') {
+            const fechaContainer = document.querySelector('#mobileFiltersContent #modo-fecha-container');
+            const rangoContainer = document.querySelector('#mobileFiltersContent #modo-rango-container');
+            if (fechaContainer) fechaContainer.style.display = 'none';
+            if (rangoContainer) rangoContainer.style.display = 'block';
+        } else {
+            const fechaContainer = document.querySelector('#mobileFiltersContent #modo-fecha-container');
+            const rangoContainer = document.querySelector('#mobileFiltersContent #modo-rango-container');
+            if (fechaContainer) fechaContainer.style.display = 'block';
+            if (rangoContainer) rangoContainer.style.display = 'none';
+        }
+    });
+    if (mobileApto) mobileApto.addEventListener('change', () => syncToOriginalAndClose());
+    if (mobileAire) mobileAire.addEventListener('change', () => syncToOriginalAndClose());
+}
+
+function handleMobileCategoryChange(e) {
+    const originalCb = document.querySelector(`.filters-sidebar .filtro-categoria[value="${e.target.value}"]`);
+    if (originalCb) {
+        originalCb.checked = e.target.checked;
+        originalCb.dispatchEvent(new Event('change'));
+    }
+}
+
+function syncToOriginalAndClose() {
+    syncMobileFiltersToOriginal();
+    setTimeout(() => {
+        if (window.mobileFiltersOverlay) {
+            window.mobileFiltersOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }, 150);
+}
+
+// ==================== FILTROS MÓVIL PRINCIPAL ====================
+/*function initMobileFilters() {
+    const filterBtn = document.getElementById('mobileFilterBtn');
+    if (!filterBtn) return;
+    
     if (!document.querySelector('.mobile-filters-overlay')) {
         const overlay = document.createElement('div');
         overlay.className = 'mobile-filters-overlay';
@@ -295,7 +470,86 @@ function initMobileFilters() {
         `;
         document.body.appendChild(overlay);
         
+        const style = document.createElement('style');
+        style.textContent = `
+            .mobile-filters-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 10001;
+                visibility: hidden;
+                opacity: 0;
+                transition: all 0.3s ease;
+            }
+            .mobile-filters-overlay.active {
+                visibility: visible;
+                opacity: 1;
+            }
+            .mobile-filters-panel {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 85%;
+                max-width: 320px;
+                background: var(--color-surface);
+                box-shadow: -2px 0 12px rgba(0,0,0,0.15);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                display: flex;
+                flex-direction: column;
+                z-index: 10002;
+            }
+            .mobile-filters-overlay.active .mobile-filters-panel {
+                transform: translateX(0);
+            }
+            .mobile-filters-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem;
+                border-bottom: 1px solid var(--color-border);
+                background: var(--color-surface);
+                flex-shrink: 0;
+            }
+            .mobile-filters-header h3 {
+                margin: 0;
+                font-size: 1.1rem;
+            }
+            .mobile-filters-close {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0.5rem;
+            }
+            .mobile-filters-close img {
+                width: 20px;
+                height: 20px;
+            }
+            .mobile-filters-content {
+                flex: 1;
+                overflow-y: auto;
+                padding: 1rem;
+            }
+            .mobile-filters-content .filters-sidebar {
+                width: 100%;
+                position: static;
+                padding: 0;
+                box-shadow: none;
+            }
+            .mobile-filters-content .resultados-orden-clone {
+                margin-bottom: 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid var(--color-border);
+            }
+        `;
+        document.head.appendChild(style);
+        
         const closeBtn = document.getElementById('mobileFiltersClose');
+        const overlayEl = document.getElementById('mobileFiltersOverlay');
         const closeIcon = document.getElementById('mobileFiltersCloseIcon');
         
         function updateCloseIcon() {
@@ -310,80 +564,48 @@ function initMobileFilters() {
         updateCloseIcon();
         
         closeBtn?.addEventListener('click', () => {
-            overlay.classList.remove('active');
+            overlayEl.classList.remove('active');
             document.body.style.overflow = '';
         });
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                overlay.classList.remove('active');
+        
+        overlayEl?.addEventListener('click', (e) => {
+            if (e.target === overlayEl) {
+                overlayEl.classList.remove('active');
                 document.body.style.overflow = '';
             }
         });
         
-        window.mobileFiltersOverlay = overlay;
+        window.mobileFiltersOverlay = overlayEl;
     }
     
-    const filterBtn = document.getElementById('mobileFilterBtn');
-    if (filterBtn) {
-        filterBtn.addEventListener('click', () => {
-            const filtersContent = document.querySelector('.filters-sidebar');
-            const mobileContent = document.getElementById('mobileFiltersContent');
-            if (filtersContent && mobileContent) {
-                mobileContent.innerHTML = filtersContent.cloneNode(true).innerHTML;
-                
-                const ordenador = document.querySelector('.resultados-orden');
-                if (ordenador && !mobileContent.querySelector('.resultados-orden-clone')) {
-                    const ordenadorClone = ordenador.cloneNode(true);
-                    ordenadorClone.classList.add('resultados-orden-clone');
-                    ordenadorClone.style.marginBottom = '1rem';
-                    ordenadorClone.style.paddingBottom = '0.5rem';
-                    ordenadorClone.style.borderBottom = '1px solid var(--color-border)';
-                    mobileContent.insertBefore(ordenadorClone, mobileContent.firstChild);
-                }
-                
-                reinitializeFilterEvents();
+    const newFilterBtn = filterBtn.cloneNode(true);
+    filterBtn.parentNode.replaceChild(newFilterBtn, filterBtn);
+    
+    newFilterBtn.addEventListener('click', () => {
+        const filtersSidebar = document.querySelector('.filters-sidebar');
+        const mobileContent = document.getElementById('mobileFiltersContent');
+        
+        if (filtersSidebar && mobileContent) {
+            saveOriginalFilterState();
+            mobileContent.innerHTML = '';
+            const clone = filtersSidebar.cloneNode(true);
+            clone.classList.add('filters-sidebar');
+            mobileContent.appendChild(clone);
+            
+            const ordenador = document.querySelector('.resultados-orden');
+            if (ordenador && !mobileContent.querySelector('.resultados-orden-clone')) {
+                const ordenadorClone = ordenador.cloneNode(true);
+                ordenadorClone.classList.add('resultados-orden-clone');
+                mobileContent.insertBefore(ordenadorClone, mobileContent.firstChild);
             }
-            window.mobileFiltersOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-    }
-}
-
-function reinitializeFilterEvents() {
-    const ordenSelect = document.getElementById('orden-eventos');
-    const mobileOrdenSelect = document.querySelector('#mobileFiltersContent #orden-eventos');
-    if (ordenSelect && mobileOrdenSelect) {
-        mobileOrdenSelect.addEventListener('change', () => {
-            ordenSelect.value = mobileOrdenSelect.value;
-            ordenSelect.dispatchEvent(new Event('change'));
-        });
-    }
-    
-    document.querySelectorAll('#mobileFiltersContent .filtro-categoria').forEach(cb => {
-        cb.addEventListener('change', () => {
-            const originalCb = document.querySelector(`.filters-sidebar .filtro-categoria[value="${cb.value}"]`);
-            if (originalCb) originalCb.checked = cb.checked;
-            originalCb?.dispatchEvent(new Event('change'));
-        });
+            
+            syncOriginalToMobile();
+            attachMobileChangeEvents();
+        }
+        window.mobileFiltersOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
     });
-    
-    document.querySelectorAll('#mobileFiltersContent input[type="date"]').forEach(input => {
-        input.addEventListener('change', () => {
-            const originalInput = document.querySelector(`.filters-sidebar #${input.id}`);
-            if (originalInput) originalInput.value = input.value;
-            originalInput?.dispatchEvent(new Event('change'));
-        });
-    });
-    
-    const modoSelect = document.getElementById('modo-fecha');
-    const mobileModoSelect = document.querySelector('#mobileFiltersContent #modo-fecha');
-    if (modoSelect && mobileModoSelect) {
-        mobileModoSelect.addEventListener('change', () => {
-            modoSelect.value = mobileModoSelect.value;
-            modoSelect.dispatchEvent(new Event('change'));
-        });
-    }
-}
+}*/
 
 // Inicializar todo
 document.addEventListener('DOMContentLoaded', () => {

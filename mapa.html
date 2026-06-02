@@ -373,12 +373,11 @@
                 <div class="filter-features-row">
                     <div class="filter-checkboxes">
                         <label class="filter-checkbox-item">
-                            <input type="checkbox" id="map-filtro-apto-menores">Apto para menores
+                            <input type="checkbox" id="map-filtro-apto-menores"> Apto para menores
                         </label>
                         <label class="filter-checkbox-item">
-                            <input type="checkbox" id="map-filtro-aire-libre">Aire libre
+                            <input type="checkbox" id="map-filtro-aire-libre"> Exterior
                         </label>
-                    </div>
                 </div>
             </div>
         </div>
@@ -434,7 +433,10 @@
             if (!markerClusterGroup || !mapInitialized) return;
             markerClusterGroup.clearLayers();
             
-            let eventos = getEventosFuturos();
+            // 🔥 OBTENER EVENTOS FUTUROS CON STRINGS 🔥
+            const hoy = new Date();
+            const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+            let eventos = getEventos().filter(e => e.fechaInicio >= hoyStr);
             
             if (categoriasActivas.length > 0) {
                 eventos = eventos.filter(e => categoriasActivas.includes(e.categoria));
@@ -453,7 +455,7 @@
                         <div style="min-width: 200px;">
                             <img src="${evento.poster}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" onerror="this.src='https://picsum.photos/id/100/200/100'">
                             <h4 style="margin: 0 0 4px 0;">${evento.nombre}</h4>
-                            <p style="margin: 0; font-size: 12px;"> ${formatFechaDDMMYYYY(evento.fechaInicio)}</p>
+                            <p style="margin: 0; font-size: 12px;">${formatFechaDDMMYYYY(evento.fechaInicio)}</p>
                             <p style="margin: 4px 0 0 0; font-size: 12px;"><strong>${evento.categoria}</strong></p>
                             <button onclick="window.location.href='detallesEvento.html?id=${evento.id}'" style="margin-top: 8px; padding: 4px 12px; background: rgb(2,90,138); color: white; border: none; border-radius: 20px; cursor: pointer;">Ver detalles</button>
                         </div>

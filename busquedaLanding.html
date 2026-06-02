@@ -12,7 +12,7 @@
             margin: 2rem auto;
             padding: 0 1rem;
         }
-        .busqueda-layout {
+        .two-column-layout {
             display: flex;
             gap: 2rem;
         }
@@ -47,10 +47,10 @@
             color: var(--color-text-primary);
             font-size: 0.9rem;
         }
-        .resultados-orden label{
+        .resultados-orden label {
             font-size: 0.9rem;
         }
-        .filtros-sidebar {
+        .filters-sidebar {
             width: 280px;
             flex-shrink: 0;
             background: var(--color-surface);
@@ -61,11 +61,22 @@
             position: sticky;
             top: 80px;
         }
-        .filtros-sidebar h3 {
+        .filters-sidebar h3 {
             font-size: 1rem;
             margin-bottom: 0.75rem;
             margin-top: 0.5rem;
             color: var(--color-text-primary);
+        }
+        .rango-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .rango-item label {
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+            display: block;
+            margin-bottom: 0.2rem;
         }
         .fecha-input {
             width: 100%;
@@ -74,7 +85,6 @@
             border-radius: 12px;
             background: var(--color-bg);
             color: var(--color-text-primary);
-            margin-bottom: 0.8rem;
             font-size: 0.9rem;
         }
         .categorias-group {
@@ -100,7 +110,7 @@
             height: 1px;
             background: var(--color-border);
         }
-        .evento-resultado {
+        .evento-resultado-item {
             display: flex;
             gap: 1rem;
             background: var(--color-surface);
@@ -111,11 +121,11 @@
             transition: all 0.2s ease;
             box-shadow: 0 1px 4px var(--shadow-border);
         }
-        .evento-resultado:hover {
+        .evento-resultado-item:hover {
             transform: translateX(4px);
             background: var(--color-bg);
         }
-        .evento-resultado img {
+        .evento-resultado-img {
             width: 60px;
             height: 60px;
             border-radius: 8px;
@@ -141,12 +151,30 @@
             border-radius: 12px;
             font-size: 0.9rem;
             margin-top: 0.25rem;
+            margin-right: 0.5rem;
         }
-        .empty-resultados {
+        .badge-menores-si, .badge-menores-no, .badge-aire-si, .badge-aire-no {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+            margin-right: 0.5rem;
+            color: white;
+        }
+        .badge-menores-si { background: #27ae60; }
+        .badge-menores-no { background: #e67e22; }
+        .badge-aire-si { background: #97cc2e; }
+        .badge-aire-no { background: #3498db; }
+        .loading-spinner {
             text-align: center;
-            padding: 3rem;
-            background: var(--color-surface);
-            border-radius: 16px;
+            padding: 2rem;
+            color: var(--color-text-secondary);
+        }
+        .resultados-scroll {
+            max-height: calc(100vh - 250px);
+            overflow-y: auto;
+            padding-right: 0.5rem;
         }
         .mobile-filter-btn {
             display: none;
@@ -160,18 +188,21 @@
             width: 20px;
             height: 20px;
         }
+        .resultados-orden-mobile {
+            display: none;
+        }
         @media (max-width: 700px) {
-            .busqueda-layout {
+            .two-column-layout {
                 flex-direction: column;
             }
-            .filtros-sidebar {
+            .filters-sidebar {
                 display: none;
             }
             .mobile-filter-btn {
                 display: flex;
             }
-            .desktop-only {
-                display: none;
+            .resultados-orden-mobile {
+                display: block !important;
             }
         }
         @media (min-width: 701px) {
@@ -184,10 +215,9 @@
 <body data-page="busquedaLanding">
 
     <div id="landingSidebarOverlay" class="landing-sidebar-overlay"></div>
-    
     <div id="landingSidebar" class="landing-sidebar">
         <div class="landing-sidebar-header">
-            <button id="landingSidebarClose" class="landing-sidebar-close"><img src="resources/icons_light/icon_x.png"></button>
+            <button id="landingSidebarClose" class="landing-sidebar-close"><img src="resources/icons_light/icon_x.png" alt="cerrar"></button>
         </div>
         <div class="landing-sidebar-links">
             <a href="index.html" class="landing-sidebar-link"><img src="resources/icons_light/home-alt.png"><span>Inicio</span></a>
@@ -207,8 +237,11 @@
 
     <nav class="landing-navbar">
         <div class="landing-logo">
-            <button id="landingMenuToggle" class="landing-menu-toggle"><img src="resources/icons_light/menu.png"></button>
-            <img src="resources/aguacero_cuba_logo_trasnparente.png"><span>Cultura Habana</span>
+            <button id="landingMenuToggle" class="landing-menu-toggle">
+                <img src="resources/icons_light/menu.png" alt="menú">
+            </button>
+            <img class="landing-logo-light" src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+            <span>Cultura Habana</span>
         </div>
         <div class="landing-nav-links">
             <a href="index.html" class="landing-nav-link"><img src="resources/icons_light/home-alt.png"> Inicio</a>
@@ -225,14 +258,14 @@
             <a href="mapaLanding.html" class="landing-nav-link"><img src="resources/icons_light/map.png"> Mapa</a>
         </div>
         <div class="landing-nav-right">
-            <button id="landingSearchTrigger" class="landing-search-trigger"><img src="resources/icons_light/search.png"></button>
-            <button id="landingThemeBtn" class="landing-theme-btn"><img id="landingThemeIcon" src="resources/icons_light/moon.png"></button>
+            <button id="landingSearchTrigger" class="landing-search-trigger"><img src="resources/icons_light/search.png" alt="buscar"></button>
+            <button id="landingThemeBtn" class="landing-theme-btn"><img id="landingThemeIcon" src="resources/icons_light/moon.png" alt="tema"></button>
             <a href="login.html" class="btn-login">Iniciar sesión</a>
         </div>
     </nav>
 
     <div class="busqueda-landing-container">
-        <div class="busqueda-layout">
+        <div class="two-column-layout">
             <div class="resultados-area">
                 <div class="resultados-header">
                     <h3>Resultados para: <span id="termino-busqueda"></span></h3>
@@ -249,15 +282,30 @@
                         </button>
                     </div>
                 </div>
-                <div id="resultados-lista">
+                <div id="resultados-lista" class="resultados-scroll">
                     <div class="loading-spinner">Cargando resultados...</div>
                 </div>
             </div>
             
-            <div class="filtros-sidebar">
+            <div class="filters-sidebar">
+                <div class="resultados-orden-mobile" style="margin-bottom: 1rem; display: none;">
+                    <label>Ordenar por:</label>
+                    <select id="orden-eventos-mobile">
+                        <option value="asc">Más antiguos primero</option>
+                        <option value="desc">Más recientes primero</option>
+                    </select>
+                </div>
                 <h3>Intervalo de fechas</h3>
-                <input type="date" id="fecha-inicio" class="fecha-input">
-                <input type="date" id="fecha-fin" class="fecha-input">
+                <div class="rango-inputs">
+                    <div class="rango-item">
+                        <label>Desde</label>
+                        <input type="date" id="fecha-inicio" class="fecha-input">
+                    </div>
+                    <div class="rango-item">
+                        <label>Hasta</label>
+                        <input type="date" id="fecha-fin" class="fecha-input">
+                    </div>
+                </div>
                 
                 <hr class="divisor-filtros">
                 
@@ -268,8 +316,12 @@
                 
                 <h3>Características</h3>
                 <div class="categorias-group">
-                    <label class="categoria-checkbox"><input type="checkbox" id="filtro-apto-menores">Apto para menores</label>
-                    <label class="categoria-checkbox"><input type="checkbox" id="filtro-aire-libre">Al aire libre</label>
+                    <label class="categoria-checkbox">
+                        <input type="checkbox" id="filtro-apto-menores"> Apto para menores
+                    </label>
+                    <label class="categoria-checkbox">
+                        <input type="checkbox" id="filtro-aire-libre"> Exterior
+                    </label>
                 </div>
             </div>
         </div>
@@ -331,6 +383,12 @@
     <script src="data.js"></script>
     <script src="landing-common.js"></script>
     <script>
+        // Redirigir si ya hay sesión iniciada
+        if (typeof getUsuarioActual === 'function' && getUsuarioActual()) {
+            window.location.href = 'busqueda.html';
+        }
+        
+        // ==================== LÓGICA DE BÚSQUEDA ====================
         const urlParams = new URLSearchParams(window.location.search);
         const terminoBusqueda = urlParams.get('q') || '';
         document.getElementById('termino-busqueda').textContent = terminoBusqueda || 'todos';
@@ -339,9 +397,20 @@
         const filtroAptoMenores = document.getElementById('filtro-apto-menores');
         const filtroAireLibre = document.getElementById('filtro-aire-libre');
         
+        function formatFechaShort(fechaStr) {
+            if (!fechaStr) return '';
+            const partes = fechaStr.split('-');
+            if (partes.length !== 3) return fechaStr;
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+        
         function aplicarFiltrosAdicionales(eventos) {
-            if (filtroAptoMenores?.checked) eventos = eventos.filter(e => e.aptoMenores === true);
-            if (filtroAireLibre?.checked) eventos = eventos.filter(e => e.aireLibre === true);
+            if (filtroAptoMenores && filtroAptoMenores.checked) {
+                eventos = eventos.filter(e => e.aptoMenores === true);
+            }
+            if (filtroAireLibre && filtroAireLibre.checked) {
+                eventos = eventos.filter(e => e.aireLibre === true);
+            }
             return eventos;
         }
         
@@ -365,60 +434,317 @@
         
         function renderizarResultados() {
             let eventos = buscarEventos(terminoBusqueda);
+            
             if (categoriasSeleccionadas.length > 0) {
                 eventos = eventos.filter(e => categoriasSeleccionadas.includes(e.categoria));
             }
+            
             eventos = aplicarFiltrosAdicionales(eventos);
             
             const fechaInicio = document.getElementById('fecha-inicio')?.value;
             const fechaFin = document.getElementById('fecha-fin')?.value;
             
             if (fechaInicio) {
-                const inicio = new Date(fechaInicio + 'T12:00:00');
-                eventos = eventos.filter(e => {
-                    const fechaEvento = new Date(e.fechaInicio + 'T12:00:00');
-                    return fechaEvento >= inicio;
-                });
+                eventos = eventos.filter(e => e.fechaInicio >= fechaInicio);
             }
             if (fechaFin) {
-                const fin = new Date(fechaFin + 'T23:59:59');
-                eventos = eventos.filter(e => {
-                    const fechaEvento = new Date(e.fechaInicio + 'T12:00:00');
-                    return fechaEvento <= fin;
-                });
+                eventos = eventos.filter(e => e.fechaInicio <= fechaFin);
             }
             
             const orden = document.getElementById('orden-eventos')?.value || 'asc';
-            eventos.sort((a,b) => orden === 'asc' ? new Date(a.fechaInicio + 'T12:00:00') - new Date(b.fechaInicio + 'T12:00:00') : new Date(b.fechaInicio + 'T12:00:00') - new Date(a.fechaInicio + 'T12:00:00'));
+            eventos.sort((a, b) => {
+                if (orden === 'asc') {
+                    return a.fechaInicio.localeCompare(b.fechaInicio);
+                } else {
+                    return b.fechaInicio.localeCompare(a.fechaInicio);
+                }
+            });
             
             const container = document.getElementById('resultados-lista');
             if (!container) return;
+            
             if (eventos.length === 0) {
-                container.innerHTML = '<div class="empty-resultados">No se encontraron eventos</div>';
+                container.innerHTML = '<div class="loading-spinner">No se encontraron eventos</div>';
                 return;
             }
-            container.innerHTML = eventos.map(evento => `
-                <div class="evento-resultado" onclick="window.location.href='detallesEventoLanding.html?id=${evento.id}'">
-                    <img src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/60/60'">
-                    <div class="evento-resultado-info">
-                        <h4>${evento.nombre}</h4>
-                        <p class="fecha">${new Date(evento.fechaInicio + 'T12:00:00').toLocaleDateString()} ${evento.horaInicio ? '· ' + evento.horaInicio.substring(0,5) : ''}</p>
-                        <span class="categoria-badge">${evento.categoria}</span>
-                        ${evento.aptoMenores ? '<span class="categoria-badge" style="background:#27ae60;">Menores</span>' : '<span class="categoria-badge" style="background:#e67e22;">Adultos</span>'}
-                        ${evento.aireLibre ? '<span class="categoria-badge" style="background:#f39c12;">Aire libre</span>' : '<span class="categoria-badge" style="background:#3498db;">Espacio cerrado</span>'}
+            
+            container.innerHTML = eventos.map(evento => {
+                const menores = evento.aptoMenores ? 
+                    { clase: 'badge-menores-si', texto: '👶 Apto menores' } : 
+                    { clase: 'badge-menores-no', texto: '👤 Adultos' };
+                const aire = evento.aireLibre ? 
+                    { clase: 'badge-aire-si', texto: '🌳 Aire libre' } : 
+                    { clase: 'badge-aire-no', texto: '🏠 Interior' };
+                return `
+                    <div class="evento-resultado-item" onclick="window.location.href='detallesEventoLanding.html?id=${evento.id}'">
+                        <img class="evento-resultado-img" src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/60/60'">
+                        <div class="evento-resultado-info">
+                            <h4>${evento.nombre}</h4>
+                            <p class="fecha">${formatFechaShort(evento.fechaInicio)} ${evento.horaInicio ? '· ' + evento.horaInicio.substring(0,5) : ''}</p>
+                            <span class="categoria-badge">${evento.categoria}</span>
+                            <span class="${menores.clase}">${menores.texto}</span>
+                            <span class="${aire.clase}">${aire.texto}</span>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
+        filtroAptoMenores?.addEventListener('change', renderizarResultados);
+        filtroAireLibre?.addEventListener('change', renderizarResultados);
         document.getElementById('fecha-inicio')?.addEventListener('change', renderizarResultados);
         document.getElementById('fecha-fin')?.addEventListener('change', renderizarResultados);
         document.getElementById('orden-eventos')?.addEventListener('change', renderizarResultados);
-        filtroAptoMenores?.addEventListener('change', renderizarResultados);
-        filtroAireLibre?.addEventListener('change', renderizarResultados);
         
         renderizarFiltros();
         renderizarResultados();
+        
+        // Sincronizar orden móvil
+        const ordenMobile = document.getElementById('orden-eventos-mobile');
+        const ordenOriginal = document.getElementById('orden-eventos');
+        if (ordenMobile && ordenOriginal) {
+            ordenMobile.addEventListener('change', () => {
+                ordenOriginal.value = ordenMobile.value;
+                ordenOriginal.dispatchEvent(new Event('change'));
+            });
+            ordenOriginal.addEventListener('change', () => {
+                ordenMobile.value = ordenOriginal.value;
+            });
+        }
+        
+        // ==================== FILTRO MÓVIL (INDEPENDIENTE - NO USAR initMobileFilters de landing-common.js) ====================
+        (function initMobileFilter() {
+            const mobileFilterBtn = document.getElementById('mobileFilterBtn');
+            if (!mobileFilterBtn) return;
+            
+            if (!document.querySelector('.mobile-filters-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'mobile-filters-overlay';
+                overlay.id = 'mobileFiltersOverlay';
+                overlay.innerHTML = `
+                    <div class="mobile-filters-panel">
+                        <div class="mobile-filters-header">
+                            <h3>Filtros</h3>
+                            <button id="mobileFiltersClose" class="mobile-filters-close">
+                                <img src="resources/icons_light/icon_x.png" alt="cerrar">
+                            </button>
+                        </div>
+                        <div class="mobile-filters-content" id="mobileFiltersContent"></div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    .mobile-filters-overlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0,0,0,0.5);
+                        z-index: 10001;
+                        visibility: hidden;
+                        opacity: 0;
+                        transition: all 0.3s ease;
+                    }
+                    .mobile-filters-overlay.active {
+                        visibility: visible;
+                        opacity: 1;
+                    }
+                    .mobile-filters-panel {
+                        position: fixed;
+                        top: 0;
+                        right: 0;
+                        bottom: 0;
+                        width: 85%;
+                        max-width: 320px;
+                        background: var(--color-surface);
+                        box-shadow: -2px 0 12px rgba(0,0,0,0.15);
+                        transform: translateX(100%);
+                        transition: transform 0.3s ease;
+                        display: flex;
+                        flex-direction: column;
+                        z-index: 10002;
+                    }
+                    .mobile-filters-overlay.active .mobile-filters-panel {
+                        transform: translateX(0);
+                    }
+                    .mobile-filters-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 1rem;
+                        border-bottom: 1px solid var(--color-border);
+                        background: var(--color-surface);
+                        flex-shrink: 0;
+                    }
+                    .mobile-filters-header h3 {
+                        margin: 0;
+                        font-size: 1.1rem;
+                    }
+                    .mobile-filters-close {
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        padding: 0.5rem;
+                    }
+                    .mobile-filters-close img {
+                        width: 20px;
+                        height: 20px;
+                    }
+                    .mobile-filters-content {
+                        flex: 1;
+                        overflow-y: auto;
+                        padding: 1rem;
+                    }
+                    .mobile-filters-content .filters-sidebar {
+                        width: 100%;
+                        position: static;
+                        padding: 0;
+                        box-shadow: none;
+                    }
+                    .mobile-filters-content .resultados-orden-clone {
+                        margin-bottom: 1rem;
+                        padding-bottom: 0.5rem;
+                        border-bottom: 1px solid var(--color-border);
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                const closeBtn = document.getElementById('mobileFiltersClose');
+                const overlayEl = document.getElementById('mobileFiltersOverlay');
+                
+                function updateCloseIcon() {
+                    const closeIcon = document.querySelector('#mobileFiltersClose img');
+                    if (closeIcon) {
+                        const isDark = document.body.classList.contains('dark-mode');
+                        closeIcon.src = isDark ? 'resources/icons_dark/icon_x.png' : 'resources/icons_light/icon_x.png';
+                    }
+                }
+                const observer = new MutationObserver(updateCloseIcon);
+                observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                updateCloseIcon();
+                
+                closeBtn?.addEventListener('click', () => {
+                    overlayEl.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+                overlayEl?.addEventListener('click', (e) => {
+                    if (e.target === overlayEl) {
+                        overlayEl.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+                window.mobileFiltersOverlay = overlayEl;
+            }
+            
+            const newFilterBtn = mobileFilterBtn.cloneNode(true);
+            mobileFilterBtn.parentNode.replaceChild(newFilterBtn, mobileFilterBtn);
+            
+            newFilterBtn.addEventListener('click', () => {
+                const filtersSidebar = document.querySelector('.filters-sidebar');
+                const mobileContent = document.getElementById('mobileFiltersContent');
+                
+                if (filtersSidebar && mobileContent) {
+                    mobileContent.innerHTML = '';
+                    const clone = filtersSidebar.cloneNode(true);
+                    clone.classList.add('filters-sidebar');
+                    mobileContent.appendChild(clone);
+                    
+                    const ordenador = document.querySelector('.resultados-orden');
+                    if (ordenador && !mobileContent.querySelector('.resultados-orden-clone')) {
+                        const ordenadorClone = ordenador.cloneNode(true);
+                        ordenadorClone.classList.add('resultados-orden-clone');
+                        mobileContent.insertBefore(ordenadorClone, mobileContent.firstChild);
+                    }
+                    
+                    // Sincronizar valores actuales
+                    const originalFechaInicio = document.getElementById('fecha-inicio')?.value;
+                    const originalFechaFin = document.getElementById('fecha-fin')?.value;
+                    const originalApto = document.getElementById('filtro-apto-menores')?.checked;
+                    const originalAire = document.getElementById('filtro-aire-libre')?.checked;
+                    const originalOrden = document.getElementById('orden-eventos')?.value;
+                    
+                    const cloneFechaInicio = mobileContent.querySelector('#fecha-inicio');
+                    const cloneFechaFin = mobileContent.querySelector('#fecha-fin');
+                    const cloneApto = mobileContent.querySelector('#filtro-apto-menores');
+                    const cloneAire = mobileContent.querySelector('#filtro-aire-libre');
+                    const cloneOrden = mobileContent.querySelector('#orden-eventos');
+                    const cloneCategorias = mobileContent.querySelectorAll('.filtro-categoria');
+                    
+                    if (cloneFechaInicio) cloneFechaInicio.value = originalFechaInicio || '';
+                    if (cloneFechaFin) cloneFechaFin.value = originalFechaFin || '';
+                    if (cloneApto) cloneApto.checked = originalApto || false;
+                    if (cloneAire) cloneAire.checked = originalAire || false;
+                    if (cloneOrden) cloneOrden.value = originalOrden || 'asc';
+                    
+                    const originalCategorias = document.querySelectorAll('.filters-sidebar .filtro-categoria');
+                    cloneCategorias.forEach((cb, idx) => {
+                        if (originalCategorias[idx]) cb.checked = originalCategorias[idx].checked;
+                    });
+                    
+                    // Eventos
+                    cloneCategorias.forEach(cb => {
+                        cb.addEventListener('change', () => {
+                            const originalCb = document.querySelector(`.filters-sidebar .filtro-categoria[value="${cb.value}"]`);
+                            if (originalCb) {
+                                originalCb.checked = cb.checked;
+                                originalCb.dispatchEvent(new Event('change'));
+                            }
+                        });
+                    });
+                    
+                    if (cloneFechaInicio) {
+                        cloneFechaInicio.addEventListener('change', () => {
+                            const original = document.getElementById('fecha-inicio');
+                            if (original) {
+                                original.value = cloneFechaInicio.value;
+                                original.dispatchEvent(new Event('change'));
+                            }
+                        });
+                    }
+                    if (cloneFechaFin) {
+                        cloneFechaFin.addEventListener('change', () => {
+                            const original = document.getElementById('fecha-fin');
+                            if (original) {
+                                original.value = cloneFechaFin.value;
+                                original.dispatchEvent(new Event('change'));
+                            }
+                        });
+                    }
+                    if (cloneApto) {
+                        cloneApto.addEventListener('change', () => {
+                            const original = document.getElementById('filtro-apto-menores');
+                            if (original) {
+                                original.checked = cloneApto.checked;
+                                original.dispatchEvent(new Event('change'));
+                            }
+                        });
+                    }
+                    if (cloneAire) {
+                        cloneAire.addEventListener('change', () => {
+                            const original = document.getElementById('filtro-aire-libre');
+                            if (original) {
+                                original.checked = cloneAire.checked;
+                                original.dispatchEvent(new Event('change'));
+                            }
+                        });
+                    }
+                    if (cloneOrden) {
+                        cloneOrden.addEventListener('change', () => {
+                            const original = document.getElementById('orden-eventos');
+                            if (original) {
+                                original.value = cloneOrden.value;
+                                original.dispatchEvent(new Event('change'));
+                            }
+                        });
+                    }
+                }
+                window.mobileFiltersOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        })();
     </script>
 </body>
 </html>

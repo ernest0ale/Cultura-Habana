@@ -181,9 +181,11 @@
             const orden = ordenSelect?.value || 'asc';
             
             eventosGuardados.sort((a, b) => {
-                const fechaA = new Date(a.fechaInicio);
-                const fechaB = new Date(b.fechaInicio);
-                return orden === 'asc' ? fechaA - fechaB : fechaB - fechaA;
+                if (orden === 'asc') {
+                    return a.fechaInicio.localeCompare(b.fechaInicio);
+                } else {
+                    return b.fechaInicio.localeCompare(a.fechaInicio);
+                }
             });
             
             if (eventosGuardados.length === 0) {

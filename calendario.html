@@ -6,6 +6,36 @@
     <title>Calendario | Cultura Habana</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .mobile-filter-btn {
+            display: none;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+        .mobile-filter-btn img {
+            width: 20px;
+            height: 20px;
+        }
+        @media (max-width: 700px) {
+            .filters-sidebar {
+                display: none;
+            }
+            .mobile-filter-btn {
+                display: flex;
+            }
+            .resultados-orden-mobile {
+                display: block !important;
+            }
+        }
+        @media (min-width: 701px) {
+            .mobile-filter-btn {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -120,6 +150,13 @@
             
             <!-- Filtros (derecha) -->
             <div class="filters-sidebar">
+                <div class="resultados-orden-mobile" style="margin-bottom: 1rem; display: none;">
+                    <label>Ordenar por:</label>
+                    <select id="orden-eventos-mobile">
+                        <option value="asc">Más antiguos primero</option>
+                        <option value="desc">Más recientes primero</option>
+                    </select>
+                </div>
                 <!-- Selector de modo -->
                 <h3>Ver por:</h3>
                 <select id="modo-fecha" class="modo-select">
@@ -160,7 +197,7 @@
                 <h3>Características</h3>
                 <div class="categorias-group">
                     <label class="categoria-checkbox">
-                        <input type="checkbox" id="filtro-apto-menores"> Apto para menores
+                        <input type="checkbox" id="filtro-apto-menores"> Todas las edades
                     </label>
                     <label class="categoria-checkbox">
                         <input type="checkbox" id="filtro-aire-libre"> Aire libre
@@ -311,28 +348,12 @@
         
         function getEventosEnRango(fechaInicio, fechaFin) {
             if (!fechaInicio || !fechaFin) return [];
-            const inicio = new Date(fechaInicio);
-            inicio.setHours(0, 0, 0, 0);
-            const fin = new Date(fechaFin);
-            fin.setHours(23, 59, 59, 999);
-            
-            return getEventos().filter(e => {
-                const fechaEvento = new Date(e.fechaInicio);
-                fechaEvento.setHours(12, 0, 0, 0);
-                return fechaEvento >= inicio && fechaEvento <= fin;
-            }).sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
+            return getEventos().filter(e => e.fechaInicio >= fechaInicio && e.fechaInicio <= fechaFin);
         }
-        
+
         function getEventosDesdeFecha(fechaInicio) {
             if (!fechaInicio) return [];
-            const inicio = new Date(fechaInicio);
-            inicio.setHours(0, 0, 0, 0);
-            
-            return getEventos().filter(e => {
-                const fechaEvento = new Date(e.fechaInicio);
-                fechaEvento.setHours(12, 0, 0, 0);
-                return fechaEvento >= inicio;
-            }).sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
+            return getEventos().filter(e => e.fechaInicio >= fechaInicio);
         }
         
         // ==================== FILTROS DE CATEGORÍAS CON PREFERENCIAS ====================
@@ -389,15 +410,8 @@
             } else {
                 const fecha = fechaEspecifica.value;
                 if (fecha) {
-                    const partes = fecha.split('-');
-                    const fechaBuscar = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
-                    fechaBuscar.setHours(0, 0, 0, 0);
-                    
-                    eventos = getEventos().filter(evento => {
-                        const fechaEvento = new Date(evento.fechaInicio);
-                        fechaEvento.setHours(0, 0, 0, 0);
-                        return fechaEvento.getTime() === fechaBuscar.getTime();
-                    });
+                    // 🔥 COMPARACIÓN EXACTA DE STRINGS 🔥
+                    eventos = getEventos().filter(evento => evento.fechaInicio === fecha);
                 } else {
                     eventos = [];
                 }
@@ -414,9 +428,11 @@
             // Ordenar
             const orden = document.getElementById('orden-eventos')?.value || 'asc';
             eventos.sort((a, b) => {
-                const fechaA = new Date(a.fechaInicio);
-                const fechaB = new Date(b.fechaInicio);
-                return orden === 'asc' ? fechaA - fechaB : fechaB - fechaA;
+                if (orden === 'asc') {
+                    return a.fechaInicio.localeCompare(b.fechaInicio);
+                } else {
+                    return b.fechaInicio.localeCompare(a.fechaInicio);
+                }
             });
             
             const container = document.getElementById('calendario-lista');
@@ -510,7 +526,6 @@
             const mobileFilterBtn = document.getElementById('mobileFilterBtn');
             if (!mobileFilterBtn) return;
             
-            // Crear overlay si no existe
             if (!document.querySelector('.mobile-filters-overlay')) {
                 const overlay = document.createElement('div');
                 overlay.className = 'mobile-filters-overlay';
@@ -528,7 +543,6 @@
                 `;
                 document.body.appendChild(overlay);
                 
-                // Estilos del panel
                 const style = document.createElement('style');
                 style.textContent = `
                     .mobile-filters-overlay {
@@ -572,6 +586,7 @@
                         padding: 1rem;
                         border-bottom: 1px solid var(--color-border);
                         background: var(--color-surface);
+                        flex-shrink: 0;
                     }
                     .mobile-filters-header h3 {
                         margin: 0;
@@ -609,6 +624,18 @@
                 const closeBtn = document.getElementById('mobileFiltersClose');
                 const overlayEl = document.getElementById('mobileFiltersOverlay');
                 
+                function updateCloseIcon() {
+                    const closeIcon = document.querySelector('#mobileFiltersClose img');
+                    if (closeIcon) {
+                        const isDark = document.body.classList.contains('dark-mode');
+                        closeIcon.src = isDark ? 'resources/icons_dark/icon_x.png' : 'resources/icons_light/icon_x.png';
+                    }
+                }
+                
+                const observer = new MutationObserver(updateCloseIcon);
+                observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                updateCloseIcon();
+                
                 closeBtn?.addEventListener('click', () => {
                     overlayEl.classList.remove('active');
                     document.body.style.overflow = '';
@@ -621,35 +648,24 @@
                     }
                 });
                 
-                // Actualizar icono de cerrar según tema
-                const updateCloseIcon = () => {
-                    const closeIcon = document.querySelector('#mobileFiltersClose img');
-                    if (closeIcon) {
-                        const isDark = document.body.classList.contains('dark-mode');
-                        closeIcon.src = isDark ? 'resources/icons_dark/icon_x.png' : 'resources/icons_light/icon_x.png';
-                    }
-                };
-                
-                const observer = new MutationObserver(updateCloseIcon);
-                observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-                updateCloseIcon();
-                
                 window.mobileFiltersOverlay = overlayEl;
             }
             
-            // Evento click del botón
-            mobileFilterBtn.addEventListener('click', () => {
+            const newFilterBtn = mobileFilterBtn.cloneNode(true);
+            mobileFilterBtn.parentNode.replaceChild(newFilterBtn, mobileFilterBtn);
+            
+            newFilterBtn.addEventListener('click', () => {
                 const filtersSidebar = document.querySelector('.filters-sidebar');
                 const mobileContent = document.getElementById('mobileFiltersContent');
                 
                 if (filtersSidebar && mobileContent) {
-                    // Clonar los filtros
+                    saveOriginalFilterStateCalendario();
                     mobileContent.innerHTML = '';
                     const clone = filtersSidebar.cloneNode(true);
                     clone.classList.add('filters-sidebar');
                     mobileContent.appendChild(clone);
                     
-                    // Añadir el selector de orden al inicio
+                    // Añadir selector de orden
                     const ordenador = document.querySelector('.resultados-orden');
                     if (ordenador && !mobileContent.querySelector('.resultados-orden-clone')) {
                         const ordenadorClone = ordenador.cloneNode(true);
@@ -657,14 +673,164 @@
                         mobileContent.insertBefore(ordenadorClone, mobileContent.firstChild);
                     }
                     
-                    // Re-sincronizar eventos
-                    reinitializeFilterEventsMobile();
+                    syncOriginalToMobileCalendario();
+                    attachMobileEventsCalendario();
                 }
-                
                 window.mobileFiltersOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
             });
         }
+
+        function saveOriginalFilterStateCalendario() {
+            originalFilterStateCalendario = {};
+            
+            const categorias = document.querySelectorAll('.filters-sidebar .filtro-categoria');
+            categorias.forEach(cb => {
+                originalFilterStateCalendario[`cat_${cb.value}`] = cb.checked;
+            });
+            
+            const modoFecha = document.getElementById('modo-fecha');
+            const fechaEspecifica = document.getElementById('fecha-especifica');
+            const fechaInicioRango = document.getElementById('fecha-inicio-rango');
+            const fechaFinRango = document.getElementById('fecha-fin-rango');
+            const aptoMenores = document.getElementById('filtro-apto-menores');
+            const aireLibre = document.getElementById('filtro-aire-libre');
+            const ordenSelect = document.getElementById('orden-eventos');
+            
+            if (modoFecha) originalFilterStateCalendario.modoFecha = modoFecha.value;
+            if (fechaEspecifica) originalFilterStateCalendario.fechaEspecifica = fechaEspecifica.value;
+            if (fechaInicioRango) originalFilterStateCalendario.fechaInicioRango = fechaInicioRango.value;
+            if (fechaFinRango) originalFilterStateCalendario.fechaFinRango = fechaFinRango.value;
+            if (aptoMenores) originalFilterStateCalendario.aptoMenores = aptoMenores.checked;
+            if (aireLibre) originalFilterStateCalendario.aireLibre = aireLibre.checked;
+            if (ordenSelect) originalFilterStateCalendario.orden = ordenSelect.value;
+        }
+
+        function syncOriginalToMobileCalendario() {
+            const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+            mobileCategorias.forEach(cb => {
+                const originalValue = originalFilterStateCalendario[`cat_${cb.value}`];
+                if (originalValue !== undefined) cb.checked = originalValue;
+            });
+            
+            const mobileModoFecha = document.querySelector('#mobileFiltersContent #modo-fecha');
+            const mobileFechaEspecifica = document.querySelector('#mobileFiltersContent #fecha-especifica');
+            const mobileFechaInicioRango = document.querySelector('#mobileFiltersContent #fecha-inicio-rango');
+            const mobileFechaFinRango = document.querySelector('#mobileFiltersContent #fecha-fin-rango');
+            const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+            const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+            const mobileOrden = document.querySelector('#mobileFiltersContent #orden-eventos');
+            
+            if (mobileModoFecha && originalFilterStateCalendario.modoFecha !== undefined) mobileModoFecha.value = originalFilterStateCalendario.modoFecha;
+            if (mobileFechaEspecifica && originalFilterStateCalendario.fechaEspecifica !== undefined) mobileFechaEspecifica.value = originalFilterStateCalendario.fechaEspecifica;
+            if (mobileFechaInicioRango && originalFilterStateCalendario.fechaInicioRango !== undefined) mobileFechaInicioRango.value = originalFilterStateCalendario.fechaInicioRango;
+            if (mobileFechaFinRango && originalFilterStateCalendario.fechaFinRango !== undefined) mobileFechaFinRango.value = originalFilterStateCalendario.fechaFinRango;
+            if (mobileApto && originalFilterStateCalendario.aptoMenores !== undefined) mobileApto.checked = originalFilterStateCalendario.aptoMenores;
+            if (mobileAire && originalFilterStateCalendario.aireLibre !== undefined) mobileAire.checked = originalFilterStateCalendario.aireLibre;
+            if (mobileOrden && originalFilterStateCalendario.orden !== undefined) mobileOrden.value = originalFilterStateCalendario.orden;
+            
+            if (mobileModoFecha) mobileModoFecha.dispatchEvent(new Event('change'));
+        }
+
+        function syncMobileFiltersToOriginalCalendario() {
+            const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+            mobileCategorias.forEach(cb => {
+                const originalCb = document.querySelector(`.filters-sidebar .filtro-categoria[value="${cb.value}"]`);
+                if (originalCb && originalCb.checked !== cb.checked) {
+                    originalCb.checked = cb.checked;
+                    originalCb.dispatchEvent(new Event('change'));
+                }
+            });
+            
+            const mobileModoFecha = document.querySelector('#mobileFiltersContent #modo-fecha');
+            const mobileFechaEspecifica = document.querySelector('#mobileFiltersContent #fecha-especifica');
+            const mobileFechaInicioRango = document.querySelector('#mobileFiltersContent #fecha-inicio-rango');
+            const mobileFechaFinRango = document.querySelector('#mobileFiltersContent #fecha-fin-rango');
+            const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+            const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+            const mobileOrden = document.querySelector('#mobileFiltersContent #orden-eventos');
+            
+            const originalModoFecha = document.getElementById('modo-fecha');
+            const originalFechaEspecifica = document.getElementById('fecha-especifica');
+            const originalFechaInicioRango = document.getElementById('fecha-inicio-rango');
+            const originalFechaFinRango = document.getElementById('fecha-fin-rango');
+            const originalApto = document.getElementById('filtro-apto-menores');
+            const originalAire = document.getElementById('filtro-aire-libre');
+            const originalOrden = document.getElementById('orden-eventos');
+            
+            if (mobileModoFecha && originalModoFecha && originalModoFecha.value !== mobileModoFecha.value) {
+                originalModoFecha.value = mobileModoFecha.value;
+                originalModoFecha.dispatchEvent(new Event('change'));
+            }
+            if (mobileFechaEspecifica && originalFechaEspecifica && originalFechaEspecifica.value !== mobileFechaEspecifica.value) {
+                originalFechaEspecifica.value = mobileFechaEspecifica.value;
+                originalFechaEspecifica.dispatchEvent(new Event('change'));
+            }
+            if (mobileFechaInicioRango && originalFechaInicioRango && originalFechaInicioRango.value !== mobileFechaInicioRango.value) {
+                originalFechaInicioRango.value = mobileFechaInicioRango.value;
+                originalFechaInicioRango.dispatchEvent(new Event('change'));
+            }
+            if (mobileFechaFinRango && originalFechaFinRango && originalFechaFinRango.value !== mobileFechaFinRango.value) {
+                originalFechaFinRango.value = mobileFechaFinRango.value;
+                originalFechaFinRango.dispatchEvent(new Event('change'));
+            }
+            if (mobileApto && originalApto && originalApto.checked !== mobileApto.checked) {
+                originalApto.checked = mobileApto.checked;
+                originalApto.dispatchEvent(new Event('change'));
+            }
+            if (mobileAire && originalAire && originalAire.checked !== mobileAire.checked) {
+                originalAire.checked = mobileAire.checked;
+                originalAire.dispatchEvent(new Event('change'));
+            }
+            if (mobileOrden && originalOrden && originalOrden.value !== mobileOrden.value) {
+                originalOrden.value = mobileOrden.value;
+                originalOrden.dispatchEvent(new Event('change'));
+            }
+        }
+
+        function attachMobileEventsCalendario() {
+            const mobileCategorias = document.querySelectorAll('#mobileFiltersContent .filtro-categoria');
+            mobileCategorias.forEach(cb => {
+                cb.removeEventListener('change', handleMobileCategoryChangeCalendario);
+                cb.addEventListener('change', handleMobileCategoryChangeCalendario);
+            });
+            
+            const mobileModoFecha = document.querySelector('#mobileFiltersContent #modo-fecha');
+            const mobileFechaEspecifica = document.querySelector('#mobileFiltersContent #fecha-especifica');
+            const mobileFechaInicioRango = document.querySelector('#mobileFiltersContent #fecha-inicio-rango');
+            const mobileFechaFinRango = document.querySelector('#mobileFiltersContent #fecha-fin-rango');
+            const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
+            const mobileAire = document.querySelector('#mobileFiltersContent #filtro-aire-libre');
+            const mobileOrden = document.querySelector('#mobileFiltersContent #orden-eventos');
+            
+            if (mobileModoFecha) mobileModoFecha.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileFechaEspecifica) mobileFechaEspecifica.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileFechaInicioRango) mobileFechaInicioRango.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileFechaFinRango) mobileFechaFinRango.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileApto) mobileApto.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileAire) mobileAire.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+            if (mobileOrden) mobileOrden.addEventListener('change', () => syncToOriginalAndCloseCalendario());
+        }
+
+        function handleMobileCategoryChangeCalendario(e) {
+            const originalCb = document.querySelector(`.filters-sidebar .filtro-categoria[value="${e.target.value}"]`);
+            if (originalCb) {
+                originalCb.checked = e.target.checked;
+                originalCb.dispatchEvent(new Event('change'));
+            }
+        }
+
+        function syncToOriginalAndCloseCalendario() {
+            syncMobileFiltersToOriginalCalendario();
+            setTimeout(() => {
+                if (window.mobileFiltersOverlay) {
+                    window.mobileFiltersOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }, 100);
+        }
+
+        let originalFilterStateCalendario = {};
 
         function reinitializeFilterEventsMobile() {
             const ordenSelect = document.getElementById('orden-eventos');
@@ -705,7 +871,7 @@
                 });
             }
             
-            // Checkboxes de características
+            // Checkboxes de características - IMPORTANTE: añadir estos
             const aptoMenores = document.getElementById('filtro-apto-menores');
             const mobileApto = document.querySelector('#mobileFiltersContent #filtro-apto-menores');
             if (aptoMenores && mobileApto) {
@@ -725,37 +891,23 @@
             }
         }
 
-        // Llamar a la función al cargar
+        // Llamar a la función al cargar (asegúrate de que se ejecute después de que el DOM esté listo)
         document.addEventListener('DOMContentLoaded', () => {
             initMobileFilter();
         });
+
+        // Sincronizar orden móvil con el original
+        const ordenMobile = document.getElementById('orden-eventos-mobile');
+        const ordenOriginal = document.getElementById('orden-eventos');
+        if (ordenMobile && ordenOriginal) {
+            ordenMobile.addEventListener('change', () => {
+                ordenOriginal.value = ordenMobile.value;
+                ordenOriginal.dispatchEvent(new Event('change'));
+            });
+            ordenOriginal.addEventListener('change', () => {
+                ordenMobile.value = ordenOriginal.value;
+            });
+        }
     </script>
-    <style>
-        .mobile-filter-btn {
-            display: none;
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 8px;
-            padding: 0.5rem;
-            cursor: pointer;
-        }
-        .mobile-filter-btn img {
-            width: 20px;
-            height: 20px;
-        }
-        @media (max-width: 700px) {
-            .filters-sidebar {
-                display: none;
-            }
-            .mobile-filter-btn {
-                display: flex;
-            }
-        }
-        @media (min-width: 701px) {
-            .mobile-filter-btn {
-                display: none;
-            }
-        }
-    </style>
 </body>
 </html>

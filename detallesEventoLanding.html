@@ -76,6 +76,23 @@
             border-radius: 16px;
             overflow: hidden;
         }
+        body.dark-mode .leaflet-control-zoom-in,
+        body.dark-mode .leaflet-control-zoom-out {
+            background-color: var(--color-surface) !important;
+            color: var(--color-text-primary) !important;
+            border: 1px solid var(--color-border) !important;
+        }
+        body.dark-mode .leaflet-control-zoom-in:hover,
+        body.dark-mode .leaflet-control-zoom-out:hover {
+            background-color: var(--color-bg) !important;
+        }
+        body.dark-mode .leaflet-layer,
+        body.dark-mode .leaflet-control-attribution {
+            filter: hue-rotate(180deg) brightness(200%) contrast(100%);
+        }
+        body.dark-mode .leaflet-container {
+            background-color: #1a1a1a;
+        }
         @media (max-width: 700px) {
             .detalle-info h1 { font-size: 1.4rem; }
             .detalle-card{
@@ -88,6 +105,19 @@
             .detalle-poster{
                 margin-left: 6rem;
             }
+        }
+        /* Corregir z-index del mapa */
+        .mapa-detalle {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Asegurar que la barra de navegación esté por encima */
+        .landing-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--color-surface);
         }
     </style>
 </head>
@@ -205,14 +235,52 @@
 
     <script src="data.js"></script>
     <script src="landing-common.js"></script>
-    <script src="script.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const eventoId = urlParams.get('id');
         const evento = eventoId ? getEventoById(eventoId) : null;
         
-        function formatDate(fechaStr) {
-            return new Date(fechaStr).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        let detailMap = null;
+        
+        function formatDateLocal(fechaStr) {
+            if (!fechaStr) return '';
+            const [year, month, day] = fechaStr.split('-');
+            const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+            
+            const fechaUTC = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+            const diaSemana = dias[fechaUTC.getUTCDay()];
+            
+            return `${diaSemana}, ${parseInt(day)} de ${meses[parseInt(month) - 1]} de ${year}`;
+        }
+        
+        function getTileUrl() {
+            return document.body.classList.contains('dark-mode') ? 
+                'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' :
+                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+        }
+        
+        function initDetailMap(lat, lng, nombre, ubicacion) {
+            if (detailMap) {
+                detailMap.remove();
+                detailMap = null;
+            }
+            const tileUrl = getTileUrl();
+            detailMap = L.map('mapa-detalle').setView([lat, lng], 15);
+            L.tileLayer(tileUrl, { attribution: '&copy; CartoDB | &copy; OSM' }).addTo(detailMap);
+            L.marker([lat, lng]).addTo(detailMap).bindPopup(`<b>${nombre}</b><br>${ubicacion}`);
+        }
+        
+        function updateDetailMapTheme() {
+            if (detailMap && evento && evento.lat && evento.lng) {
+                const newTileUrl = getTileUrl();
+                detailMap.eachLayer(layer => {
+                    if (layer._url && (layer._url.includes('basemaps') || layer._url.includes('cartocdn'))) {
+                        detailMap.removeLayer(layer);
+                    }
+                });
+                L.tileLayer(newTileUrl, { attribution: '&copy; CartoDB | &copy; OSM' }).addTo(detailMap);
+            }
         }
         
         if (!evento) {
@@ -223,39 +291,198 @@
                 <div class="detalle-info">
                     <span class="categoria-badge">${evento.categoria}</span>
                     <h1>${evento.nombre}</h1>
-                    <p><strong>Fecha:</strong> ${formatDate(evento.fechaInicio)} ${evento.horaInicio ? '· ' + evento.horaInicio : ''}</p>
-                    ${evento.fechaFin && evento.fechaFin !== evento.fechaInicio ? `<p><strong>Hasta:</strong> ${formatDate(evento.fechaFin)} ${evento.horaFin ? '· ' + evento.horaFin : ''}</p>` : ''}
+                    <p><strong>Fecha:</strong> ${formatDateLocal(evento.fechaInicio)} ${evento.horaInicio ? '· ' + evento.horaInicio : ''}</p>
+                    ${evento.fechaFin && evento.fechaFin !== evento.fechaInicio ? `<p><strong>Hasta:</strong> ${formatDateLocal(evento.fechaFin)} ${evento.horaFin ? '· ' + evento.horaFin : ''}</p>` : ''}
                     <p><strong>Precio:</strong> ${evento.precio === 0 ? 'Gratis' : evento.precio + ' CUP'}</p>
                     <p><strong>Sede:</strong> ${evento.sede || 'No especificada'}</p>
                     <p><strong>Ubicación:</strong> ${evento.ubicacion || evento.direccion || 'No especificada'}</p>
                     <p><strong>Descripción:</strong> ${evento.descripcion || 'Sin descripción disponible'}</p>
                     <div class="detalle-caracteristicas" style="margin: 1rem 0;">
-                        ${evento.aptoMenores ? '<span style="display:inline-block; background:#27ae60; color:white; padding:0.3rem 0.8rem; border-radius:20px; margin-right:0.5rem;">Menores</span>' : '<span style="display:inline-block; background:#e67e22; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Adultos</span>'}
-                        ${evento.aireLibre ? '<span style="display:inline-block; background:#f39c12; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Aire libre</span>' : '<span style="display:inline-block; background:#3498db; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Espacio cerrado</span>'}
-                        ${evento.posibilidadReserva ? '<span class="caracteristica">Posibilidad de reserva</span>' : ''}
+                        ${evento.aptoMenores ? '<span style="display:inline-block; background:#27ae60; color:white; padding:0.3rem 0.8rem; border-radius:20px; margin-right:0.5rem;">Todas las edades</span>' : '<span style="display:inline-block; background:#e67e22; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Solo adultos</span>'}
+                        ${evento.aireLibre ? '<span style="display:inline-block; background:#3498db; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Aire libre</span>' : '<span style="display:inline-block; background:#7f8c8d; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Bajo techo</span>'}
                     </div>
                     <div class="detalle-contacto">
-                            <h3>Contacto</h3>
-                            <p><strong>Organizador:</strong> ${evento.organizador || 'No especificado'}</p>
-                            <p><strong>Teléfono:</strong> ${evento.telefono || 'No disponible'}</p>
-                            ${evento.posibilidadReserva && evento.contactoReserva ? `<p><strong>Reservas:</strong> ${evento.contactoReserva}</p>` : ''}
-                            ${evento.posibilidadReserva && !evento.contactoReserva ? `<p><strong>Reservas:</strong> Contactar al organizador</p>` : ''}
+                        <h3>Contacto</h3>
+                        <p><strong>Organizador:</strong> ${evento.organizador || 'No especificado'}</p>
+                        <p><strong>Teléfono:</strong> ${evento.telefono || 'No disponible'}</p>
+                        ${evento.posibilidadReserva && evento.contactoReserva ? `<p><strong>Reservas:</strong> ${evento.contactoReserva}</p>` : ''}
+                        ${evento.posibilidadReserva && !evento.contactoReserva ? `<p><strong>Reservas:</strong> Contactar al organizador</p>` : ''}
                     </div>
                     ${evento.lat && evento.lng ? `<div id="mapa-detalle" class="mapa-detalle" style="height: 300px;"></div>` : ''}
-                    <a href="login.html" class="btn-login-detalle">Iniciar sesión para guardar evento</a>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                        <button id="compartir-btn-landing" class="btn-icon" style="background: var(--color-primary);">
+                            <img src="${getIconUrl('share.png')}" alt="compartir"><span>Compartir</span>
+                        </button>
+                        <a href="login.html" class="btn-login-detalle" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <img src="${getIconUrl('bookmark.png')}" alt="guardar" style="width:18px; height:18px; filter: brightness(0) invert(1);">
+                            Iniciar sesión
+                        </a>
+                    </div>
                 </div>
             `;
             
             if (evento.lat && evento.lng) {
                 setTimeout(() => {
-                    const isDark = document.body.classList.contains('dark-mode');
-                    const tileUrl = isDark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-                    const map = L.map('mapa-detalle').setView([evento.lat, evento.lng], 15);
-                    L.tileLayer(tileUrl, { attribution: '&copy; CartoDB | &copy; OSM' }).addTo(map);
-                    L.marker([evento.lat, evento.lng]).addTo(map).bindPopup(`<b>${evento.nombre}</b><br>${evento.ubicacion || evento.direccion}`);
+                    initDetailMap(evento.lat, evento.lng, evento.nombre, evento.ubicacion || evento.direccion);
                 }, 200);
             }
         }
+
+        function getIconUrl(iconName) {
+            const isDark = document.body.classList.contains('dark-mode');
+            return `resources/icons_dark/${iconName}`;
+        }
+
+        // Después de renderizar el contenido, agregar:
+        const shareBtn = document.getElementById('compartir-btn-landing');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', () => mostrarMenuCompartir(evento));
+        }
+        
+        // ==================== FUNCIÓN COPIAR AL PORTAPAPELES ====================
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (err) {
+                console.error('Error al copiar:', err);
+                return false;
+            }
+        }
+
+        // ==================== GENERAR TEXTO PARA COMPARTIR ====================
+        function generarTextoCompartir(evento) {
+            const lines = [];
+            const emoji = getIcono(evento.categoria);
+            lines.push(`${emoji} ${evento.nombre}`);
+            lines.push('');
+            if (evento.descripcion) {
+                lines.push(evento.descripcion);
+                lines.push('');
+            }
+            const fechaInicio = formatDateShort(evento.fechaInicio);
+            if (evento.fechaFin && evento.fechaFin !== evento.fechaInicio) {
+                const fechaFin = formatDateShort(evento.fechaFin);
+                lines.push(`📆 ${fechaInicio} - ${fechaFin}`);
+            } else {
+                lines.push(`📆 ${fechaInicio}`);
+            }
+            if (evento.horaInicio) {
+                if (evento.horaFin) {
+                    lines.push(`🕓 ${evento.horaInicio} - ${evento.horaFin}`);
+                } else {
+                    lines.push(`🕓 ${evento.horaInicio}`);
+                }
+            }
+            if (evento.sede) lines.push(`📍 ${evento.sede}`);
+            if (evento.direccion || evento.ubicacion) lines.push(`🧭 ${evento.direccion || evento.ubicacion}`);
+            if (evento.precio === 0) lines.push(`🎟️ Gratis`);
+            else lines.push(`🎟️ ${evento.precio} CUP`);
+            lines.push(evento.aptoMenores ? `👶 Todas las edades` : `👶 Solo adultos`);
+            lines.push(evento.aireLibre ? `🌳 Al aire libre` : `🌳 Espacio cerrado`);
+            if (evento.telefono) lines.push(`📞 ${evento.telefono}`);
+            if (evento.contactoReserva) lines.push(`📱 Reservas: ${evento.contactoReserva}`);
+            lines.push(`\n🔗 Más información: ${window.location.href}`);
+            return lines.join('\n');
+        }
+
+        // ==================== COMPARTIR EN REDES ====================
+        function compartirEnRed(red, contenido, tipo) {
+            let texto = '';
+            if (tipo === 'enlace') {
+                texto = `🎉 Evento en Cultura Habana: ${window.location.href}`;
+            } else {
+                texto = contenido;
+            }
+            const urls = {
+                facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
+                twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(texto.substring(0, 200))}&url=${encodeURIComponent(window.location.href)}`,
+                whatsapp: `https://wa.me/?text=${encodeURIComponent(texto.substring(0, 500))}`,
+                telegram: `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(texto.substring(0, 200))}`,
+                copy: null
+            };
+            if (red === 'copy') {
+                copyToClipboard(texto);
+                alert('✅ Contenido copiado al portapapeles');
+            } else if (urls[red]) {
+                window.open(urls[red], '_blank', 'width=600,height=400');
+            }
+        }
+
+        function mostrarMenuCompartir(evento) {
+            const shareUrl = window.location.href;
+            const shareText = generarTextoCompartir(evento);
+            const modal1 = document.createElement('div');
+            modal1.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); z-index: 10001;
+                display: flex; align-items: center; justify-content: center;
+            `;
+            modal1.innerHTML = `
+                <div style="background: var(--color-surface); border-radius: 24px; padding: 1.5rem; width: 90%; max-width: 320px; text-align: center;">
+                    <h3 style="margin-bottom: 1rem;">Compartir evento</h3>
+                    <button id="shareLinkOption" style="width: 100%; padding: 0.8rem; margin-bottom: 0.8rem; background: var(--color-primary); color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 600;">
+                        🔗 Compartir enlace
+                    </button>
+                    <button id="shareDetailsOption" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; background: #2ecc71; color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 600;">
+                        📄 Compartir detalles
+                    </button>
+                    <button id="closeShareModal1" style="width: 100%; padding: 0.8rem; background: #e74c3c; color: white; border: none; border-radius: 30px; cursor: pointer;">
+                        Cancelar
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal1);
+            const abrirModalOpciones = (tipo, contenido) => {
+                modal1.remove();
+                const modal2 = document.createElement('div');
+                modal2.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.5); z-index: 10002;
+                    display: flex; align-items: center; justify-content: center;
+                `;
+                const titulo = tipo === 'enlace' ? 'Compartir enlace' : 'Compartir detalles';
+                modal2.innerHTML = `
+                    <div style="background: var(--color-surface); border-radius: 24px; padding: 1.5rem; width: 90%; max-width: 350px; text-align: center;">
+                        <h3 style="margin-bottom: 1rem;">${titulo}</h3>
+                        <div style="display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                            <button id="copyClipboard" style="background: #3498db; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.1rem;">📋</button>
+                            <button id="shareFacebook" style="background: #1877f2; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.3rem;">f</button>
+                            <button id="shareTwitter" style="background: #1da1f2; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.3rem;">𝕏</button>
+                            <button id="shareWhatsapp" style="background: #25d366; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.1rem;">WA</button>
+                            <button id="shareTelegram" style="background: #0088cc; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.1rem;">TG</button>
+                        </div>
+                        <button id="backToFirstModal" style="width: 100%; padding: 0.8rem; margin-bottom: 0.8rem; background: #7f8c8d; color: white; border: none; border-radius: 30px; cursor: pointer;">← Volver</button>
+                        <button id="closeShareModal2" style="width: 100%; padding: 0.8rem; background: #e74c3c; color: white; border: none; border-radius: 30px; cursor: pointer;">Cancelar</button>
+                    </div>
+                `;
+                document.body.appendChild(modal2);
+                document.getElementById('copyClipboard')?.addEventListener('click', () => { compartirEnRed('copy', contenido, tipo); modal2.remove(); });
+                document.getElementById('shareFacebook')?.addEventListener('click', () => { compartirEnRed('facebook', contenido, tipo); modal2.remove(); });
+                document.getElementById('shareTwitter')?.addEventListener('click', () => { compartirEnRed('twitter', contenido, tipo); modal2.remove(); });
+                document.getElementById('shareWhatsapp')?.addEventListener('click', () => { compartirEnRed('whatsapp', contenido, tipo); modal2.remove(); });
+                document.getElementById('shareTelegram')?.addEventListener('click', () => { compartirEnRed('telegram', contenido, tipo); modal2.remove(); });
+                document.getElementById('backToFirstModal')?.addEventListener('click', () => { modal2.remove(); mostrarMenuCompartir(evento); });
+                document.getElementById('closeShareModal2')?.addEventListener('click', () => modal2.remove());
+                modal2.addEventListener('click', (e) => { if (e.target === modal2) modal2.remove(); });
+            };
+            document.getElementById('shareLinkOption')?.addEventListener('click', () => abrirModalOpciones('enlace', shareUrl));
+            document.getElementById('shareDetailsOption')?.addEventListener('click', () => abrirModalOpciones('detalles', shareText));
+            document.getElementById('closeShareModal1')?.addEventListener('click', () => modal1.remove());
+            modal1.addEventListener('click', (e) => { if (e.target === modal1) modal1.remove(); });
+        }
+
+        // Asignar evento al botón compartir
+        const shareBtnLanding = document.getElementById('compartir-btn-landing');
+        if (shareBtnLanding && evento) {
+            shareBtnLanding.addEventListener('click', () => mostrarMenuCompartir(evento));
+        }
+
+        // Observar cambios de tema para actualizar el mapa
+        const themeObserver = new MutationObserver(() => {
+            updateDetailMapTheme();
+        });
+        themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     </script>
 </body>
 </html>
