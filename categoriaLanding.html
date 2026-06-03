@@ -110,7 +110,9 @@
     <nav class="landing-navbar">
         <div class="landing-logo">
             <button id="landingMenuToggle" class="landing-menu-toggle"><img src="resources/icons_light/menu.png"></button>
-            <img src="resources/aguacero_cuba_logo_trasnparente.png"><span>Cultura Habana</span>
+            <img class="landing-logo-light" src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+            <img class="landing-logo-dark" src="resources/aguacero_cuba_darklogo_trasnparente.png" alt="Logo" style="display:none;">
+            <span>Cultura Habana</span>
         </div>
         <div class="landing-nav-links">
             <a href="index.html" class="landing-nav-link"><img src="resources/icons_light/home-alt.png"> Inicio</a>
@@ -186,9 +188,18 @@
                 </div>
                 <div class="footer-col-3">
                     <h3>CONTACTO</h3>
-                    <div class="contact-item"><strong>Tel:</strong> <a href="tel:+5351234567">+53 5123 4567</a></div>
-                    <div class="contact-item"><strong>Co:</strong> <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a></div>
-                    <div class="contact-item"><strong>Ub:</strong> <span>La Habana, Cuba</span></div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/phone.png" alt="tel" class="contact-icon">
+                        <a href="tel:+5351234567">+53 5123 4567</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/envelope.png" alt="email" class="contact-icon">
+                        <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/location.png" alt="ubicación" class="contact-icon">
+                        <span>La Habana, Cuba</span>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -213,7 +224,7 @@
         document.title = `${categoriaActual} | Cultura Habana`;
         
         function renderizarEventos() {
-            let eventos = getEventos().filter(e => e.categoria === categoriaActual);
+            let eventos = getEventosActivos().filter(e => e.categoria === categoriaActual);
             const orden = document.getElementById('orden-eventos').value;
             eventos.sort((a,b) => orden === 'asc' ? a.fechaInicio.localeCompare(b.fechaInicio) : b.fechaInicio.localeCompare(a.fechaInicio));
             const container = document.getElementById('eventos-lista');
@@ -222,20 +233,52 @@
                 return;
             }
             container.innerHTML = eventos.map(e => {
-                const [year, month, day] = e.fechaInicio.split('-');
-                const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-                const fechaFormateada = `${parseInt(day)} ${meses[parseInt(month)-1]}`;
+                const rango = formatRangoEvento(e);
                 return `
                     <div class="evento-card-horizontal" onclick="window.location.href='detallesEventoLanding.html?id=${e.id}'">
                         <img src="${e.poster}" onerror="this.src='https://picsum.photos/id/100/220/150'">
                         <div class="evento-card-info">
                             <h4>${e.nombre.length > 30 ? e.nombre.substring(0,27)+'...' : e.nombre}</h4>
-                            <p>${fechaFormateada} ${e.horaInicio ? '· ' + e.horaInicio.substring(0,5) : ''}</p>
+                            <p>${rango.fecha} ${rango.hora ? '· ' + rango.hora : ''}</p>
                         </div>
                     </div>
                 `;
             }).join('');
         }
+
+        function formatRangoEvento(evento) {
+            const fechaInicioFormateada = formatFechaDDMMYYYY(evento.fechaInicio);
+            let textoFecha = fechaInicioFormateada;
+            let textoHoras = evento.horaInicio ? evento.horaInicio.substring(0,5) : '';
+            
+            if (evento.fechaFin && evento.fechaFin !== evento.fechaInicio) {
+                const fechaFinFormateada = formatFechaDDMMYYYY(evento.fechaFin);
+                textoFecha = `${fechaInicioFormateada} - ${fechaFinFormateada}`;
+                if (evento.horaInicio && evento.horaFin) {
+                    textoHoras = `${evento.horaInicio.substring(0,5)} - ${evento.horaFin.substring(0,5)}`;
+                }
+            } else {
+                if (evento.horaInicio && evento.horaFin) {
+                    textoHoras = `${evento.horaInicio.substring(0,5)} - ${evento.horaFin.substring(0,5)}`;
+                }
+            }
+            return { fecha: textoFecha, hora: textoHoras };
+        }
+
+        // Alternar logo según tema
+        function updateLandingLogo() {
+            const isDark = document.body.classList.contains('dark-mode');
+            const lightLogo = document.querySelector('.landing-logo-light');
+            const darkLogo = document.querySelector('.landing-logo-dark');
+            if (lightLogo && darkLogo) {
+                lightLogo.style.display = isDark ? 'none' : 'inline-block';
+                darkLogo.style.display = isDark ? 'inline-block' : 'none';
+            }
+        }
+        updateLandingLogo();
+
+        const logoThemeObserver = new MutationObserver(updateLandingLogo);
+        logoThemeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
         
         document.getElementById('orden-eventos').addEventListener('change', renderizarEventos);
         renderizarEventos();

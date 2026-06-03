@@ -164,16 +164,25 @@
                         <li><a href="inicio.html">Inicio</a></li>
                         <li><a href="calendario.html">Calendario</a></li>
                         <li><a href="mapa.html">Mapa</a></li>
+                        <li id="footerGuardadosLink" style="display: none;"><a href="guardados.html">Guardados</a></li>
                         <li id="footerPromocionLink" style="display: none;"><a href="promocion.html">Promocionar</a></li>
                     </ul>
                 </div>
-                
-                <!-- Columna 3: Contacto -->
+
                 <div class="footer-col-3">
                     <h3>CONTACTO</h3>
-                    <div class="contact-item"><strong>Tel:</strong> <a href="tel:+5351234567">+53 5123 4567</a></div>
-                    <div class="contact-item"><strong>Co:</strong> <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a></div>
-                    <div class="contact-item"><strong>Ub:</strong> <span>La Habana, Cuba</span></div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/phone.png" alt="tel" class="contact-icon">
+                        <a href="tel:+5351234567">+53 5123 4567</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/envelope.png" alt="email" class="contact-icon">
+                        <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/location.png" alt="ubicación" class="contact-icon">
+                        <span>La Habana, Cuba</span>
+                    </div>
                 </div>
             </div>
             
@@ -250,15 +259,14 @@
             const dentroDe7Dias = new Date();
             dentroDe7Dias.setDate(hoy.getDate() + 7);
             const dentroDe7DiasStr = `${dentroDe7Dias.getFullYear()}-${String(dentroDe7Dias.getMonth() + 1).padStart(2, '0')}-${String(dentroDe7Dias.getDate()).padStart(2, '0')}`;
-            const eventosSemana = eventos.filter(e => e.fechaInicio >= hoyStr && e.fechaInicio <= dentroDe7DiasStr);
+            /*const eventosSemana = eventos.filter(e => e.fechaInicio >= hoyStr && e.fechaInicio <= dentroDe7DiasStr);*/
             
             let html = '';
             
             // SECCIÓN: ESTA SEMANA
-            html += `<div class="lista-horizontal-container"><h2>Esta semana</h2><div class="lista-horizontal">`;
-            if (eventosSemana.length === 0) {
-                html += '<div class="loading-spinner">No hay eventos esta semana</div>';
-            } else {
+            const eventosSemana = getEventosSemana();
+            if (eventosSemana.length > 0) {
+                html += `<div class="lista-horizontal-container"><h2>Esta semana</h2><div class="lista-horizontal">`;
                 html += eventosSemana.map(e => `
                     <div class="evento-card-inicio" onclick="window.location.href='detallesEvento.html?id=${e.id}'">
                         <img class="evento-poster" src="${e.poster}" onerror="this.src='https://picsum.photos/id/100/400/300'">
@@ -268,8 +276,8 @@
                         </div>
                     </div>
                 `).join('');
+                html += `</div></div>`;
             }
-            html += `</div></div>`;
             
             // SECCIÓN: CATEGORÍAS (preferidas primero, luego otras)
             for (const cat of categoriasOrdenadas) {
@@ -298,6 +306,20 @@
             
             container.innerHTML = html;
         }
+
+        function actualizarFooterLinks() {
+            const usuario = getUsuarioActual();
+            const guardadosLink = document.getElementById('footerGuardadosLink');
+            const promocionLink = document.getElementById('footerPromocionLink');
+            
+            if (guardadosLink) {
+                guardadosLink.style.display = usuario ? 'list-item' : 'none';
+            }
+            if (promocionLink && usuario && esAdministrador(usuario)) {
+                promocionLink.style.display = 'list-item';
+            }
+        }
+        actualizarFooterLinks();
         
         // Mostrar enlace de promocionar en footer solo para administradores
         const usuarioFooter = getUsuarioActual();

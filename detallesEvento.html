@@ -8,6 +8,132 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* Vista móvil para detallesEvento.html */
+        @media (max-width: 700px) {
+            .detalle-container {
+                display: flex;
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .detalle-poster {
+                width: 100%;
+                max-height: 250px;
+                object-fit: cover;
+                border-radius: 16px;
+                margin: 0 auto 1rem auto;
+                display: block;
+            }
+            .detalle-info {
+                padding: 0;
+                text-align: justify;
+                margin-left: 1rem;
+            }
+            .detalle-info h1 {
+                font-size: 1.4rem;
+                text-align: left;
+            }
+            .detalle-info p, .detalle-info h3, .detalle-info .categoria-badge {
+                text-align: left;
+            }
+            .detalle-caracteristicas {
+                text-align: left;
+            }
+            /* Botones en móvil: solo ícono con fondo circular */
+            #acciones-container {
+                justify-content: center;
+                display: flex;
+                gap: 0.8rem;
+                margin-top: 1.5rem;
+                flex-wrap: wrap;
+            }
+            #acciones-container button {
+                width: 48px !important;
+                height: 48px !important;
+                padding: 0 !important;
+                border-radius: 50% !important;
+                font-size: 0 !important;
+                justify-content: center !important;
+                align-items: center !important;
+                background-color: var(--color-primary) !important;
+                background-size: 24px !important;
+                background-position: center !important;
+                background-repeat: no-repeat !important;
+                border: none;
+                cursor: pointer;
+            }
+            #acciones-container:hover {
+                transform: translateY(-2px);
+                opacity: 85%;
+            }
+            #acciones-container button span {
+                display: none;
+            }
+            /* Botón eliminar */
+            #acciones-container button:nth-child(4) {
+                background-color: #e74c3c !important;
+            }
+        }
+        @media (min-width: 701px) {
+            #acciones-container button {
+                transition: transform 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+            #acciones-container button:hover {
+                transform: translateY(-2px);
+            }
+        }
+
+        /* Botón centrar mapa en detalles - ESQUINA SUPERIOR DERECHA */
+        .map-center-btn-detalle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .map-center-btn-detalle:hover {
+            transform: scale(1.05);
+            background: var(--color-bg);
+        }
+        .map-center-btn-detalle img {
+            width: 23px;
+            height: 23px;
+        }
+        .mapa-container {
+            position: relative;
+        }
+        /* Asegurar que la barra superior esté por encima del mapa y sus controles */
+        .top-bar {
+            z-index: 1002 !important;
+        }
+
+        /* Ajustar controles del mapa para que no se superpongan */
+        .leaflet-control-zoom {
+            z-index: 1001 !important;
+        }
+
+        .map-center-btn-detalle {
+            z-index: 1001 !important;
+        }
+
+        .leaflet-control-attribution {
+            font-size: 8px !important;
+            z-index: 1000 !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -105,7 +231,6 @@
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-columns">
-                <!-- Columna 1: Logo + descripción -->
                 <div class="footer-col-1">
                     <div class="footer-logo">
                         <img src="resources/aguacero_cuba_darklogo_trasnparente.png" alt="Cultura Habana">
@@ -131,27 +256,33 @@
                         </a>
                     </div>
                 </div>
-                
-                <!-- Columna 2: Explorar -->
                 <div class="footer-col-2">
                     <h3>EXPLORAR</h3>
                     <ul class="footer-links">
                         <li><a href="inicio.html">Inicio</a></li>
                         <li><a href="calendario.html">Calendario</a></li>
                         <li><a href="mapa.html">Mapa</a></li>
+                        <li id="footerGuardadosLink" style="display: none;"><a href="guardados.html">Guardados</a></li>
                         <li id="footerPromocionLink" style="display: none;"><a href="promocion.html">Promocionar</a></li>
                     </ul>
                 </div>
-                
-                <!-- Columna 3: Contacto -->
+
                 <div class="footer-col-3">
                     <h3>CONTACTO</h3>
-                    <div class="contact-item"><strong>Tel:</strong> <a href="tel:+5351234567">+53 5123 4567</a></div>
-                    <div class="contact-item"><strong>Co:</strong> <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a></div>
-                    <div class="contact-item"><strong>Ub:</strong> <span>La Habana, Cuba</span></div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/phone.png" alt="tel" class="contact-icon">
+                        <a href="tel:+5351234567">+53 5123 4567</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/envelope.png" alt="email" class="contact-icon">
+                        <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/location.png" alt="ubicación" class="contact-icon">
+                        <span>La Habana, Cuba</span>
+                    </div>
                 </div>
             </div>
-            
             <div class="footer-bottom">
                 <p class="footer-copyright">&copy; 2025 Cultura Habana. Todos los derechos reservados.</p>
                 <div class="footer-legal">
@@ -170,20 +301,25 @@
         // ==================== VARIABLES GLOBALES ====================
         let isDarkModeDetalle = localStorage.getItem('darkMode') === 'true';
         
-        // Aplicar color primario del usuario
         if (typeof aplicarColorPrimarioUsuario === 'function') {
             aplicarColorPrimarioUsuario();
         }
         
-        // ==================== FUNCIONES AUXILIARES ====================
         function formatDate(fechaStr) {
-            const fecha = new Date(fechaStr);
-            return fecha.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            if (!fechaStr) return '';
+            const [year, month, day] = fechaStr.split('-');
+            const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+            const fechaUTC = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+            const diaSemana = dias[fechaUTC.getUTCDay()];
+            return `${diaSemana}, ${parseInt(day)} de ${meses[parseInt(month) - 1]} de ${year}`;
         }
         
         function formatDateShort(fechaStr) {
-            const fecha = new Date(fechaStr);
-            return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+            if (!fechaStr) return '';
+            const [year, month, day] = fechaStr.split('-');
+            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+            return `${parseInt(day)} de ${meses[parseInt(month) - 1]}`;
         }
         
         function getTileUrlDetalle() {
@@ -195,7 +331,6 @@
             return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
         }
         
-        // ==================== FUNCIÓN PARA COPIAR AL PORTAPAPELES ====================
         async function copyToClipboard(text) {
             try {
                 await navigator.clipboard.writeText(text);
@@ -206,22 +341,15 @@
             }
         }
         
-        // ==================== GENERAR TEXTO PARA COMPARTIR ====================
         function generarTextoCompartir(evento) {
             const lines = [];
-            
-            // Nombre con emoji según categoría
             const emoji = getIcono(evento.categoria);
             lines.push(`${emoji} ${evento.nombre}`);
             lines.push('');
-            
-            // Descripción
             if (evento.descripcion) {
                 lines.push(evento.descripcion);
                 lines.push('');
             }
-            
-            // Fecha
             const fechaInicio = formatDateShort(evento.fechaInicio);
             if (evento.fechaFin && evento.fechaFin !== evento.fechaInicio) {
                 const fechaFin = formatDateShort(evento.fechaFin);
@@ -229,8 +357,6 @@
             } else {
                 lines.push(`📆 ${fechaInicio}`);
             }
-            
-            // Hora
             if (evento.horaInicio) {
                 if (evento.horaFin) {
                     lines.push(`🕓 ${evento.horaInicio} - ${evento.horaFin}`);
@@ -238,73 +364,32 @@
                     lines.push(`🕓 ${evento.horaInicio}`);
                 }
             }
-            
-            // Sede y dirección
-            if (evento.sede) {
-                lines.push(`📍 ${evento.sede}`);
-            }
-            if (evento.direccion || evento.ubicacion) {
-                lines.push(`🧭 ${evento.direccion || evento.ubicacion}`);
-            }
-            
-            // Precio
-            if (evento.precio === 0) {
-                lines.push(`🎟️ Gratis`);
-            } else {
-                lines.push(`🎟️ ${evento.precio} CUP`);
-            }
-            
-            // Características
-            if (evento.aptoMenores) {
-                lines.push(`👶 Apto para menores`);
-            }
-            if (evento.aireLibre) {
-                lines.push(`🌳 Al aire libre`);
-            }
-            
-            // Información de reservas
-            if (evento.posibilidadReserva) {
-                lines.push(`📲 Posibilidad de reserva`);
-            }
-            
-            // Contacto
-            /*if (evento.organizador) {
-                lines.push(`\n🎪 Organiza: ${evento.organizador}`);
-            }*/
-            if (evento.telefono) {
-                lines.push(`📞 ${evento.telefono}`);
-            }
-            if (evento.contactoReserva) {
-                lines.push(`📱 Reservas: ${evento.contactoReserva}`);
-            }
-            
+            if (evento.sede) lines.push(`📍 ${evento.sede}`);
+            if (evento.direccion || evento.ubicacion) lines.push(`🧭 ${evento.direccion || evento.ubicacion}`);
+            if (evento.precio === 0) lines.push(`🎟️ Gratis`);
+            else lines.push(`🎟️ ${evento.precio} CUP`);
+            lines.push(evento.aptoMenores ? `👶 Todas las edades` : `🔞 Solo adultos`);
+            lines.push(evento.aireLibre ? `🌳 Aire libre` : `🏠 Bajo techo`);
+            if (evento.telefono) lines.push(`📞 ${evento.telefono}`);
+            if (evento.contactoReserva) lines.push(`📱 Reservas: ${evento.contactoReserva}`);
             lines.push(`\n🔗 Más información: ${window.location.href}`);
-            //lines.push(`\n✨ Cultura Habana - Tu agenda cultural en La Habana`);
-            
             return lines.join('\n');
         }
         
-        // ==================== COMPARTIR EN REDES SOCIALES ====================
         function compartirEnRed(red, contenido, tipo) {
-            let url = '';
             let texto = '';
-            
             if (tipo === 'enlace') {
-                url = window.location.href;
                 texto = `🎉 Evento en Cultura Habana: ${window.location.href}`;
             } else {
-                // tipo === 'detalles'
                 texto = contenido;
             }
-            
             const urls = {
-                facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(tipo === 'enlace' ? url : window.location.href)}`,
+                facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
                 twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(texto.substring(0, 200))}&url=${encodeURIComponent(window.location.href)}`,
                 whatsapp: `https://wa.me/?text=${encodeURIComponent(texto.substring(0, 500))}`,
                 telegram: `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(texto.substring(0, 200))}`,
                 copy: null
             };
-            
             if (red === 'copy') {
                 copyToClipboard(texto);
                 alert('✅ Contenido copiado al portapapeles');
@@ -312,126 +397,82 @@
                 window.open(urls[red], '_blank', 'width=600,height=400');
             }
         }
-
-        // Popup principal: elegir entre compartir enlace o compartir detalles
+        
         function mostrarMenuCompartir(evento) {
             const shareUrl = window.location.href;
             const shareText = generarTextoCompartir(evento);
             
-            // PRIMER MODAL: Elegir qué compartir
             const modal1 = document.createElement('div');
             modal1.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                z-index: 10001;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); z-index: 10001;
+                display: flex; align-items: center; justify-content: center;
             `;
+            
+            const isDark = document.body.classList.contains('dark-mode');
+            const iconPath = isDark ? 'resources/icons_dark/' : 'resources/icons_light/';
             
             modal1.innerHTML = `
                 <div style="background: var(--color-surface); border-radius: 24px; padding: 1.5rem; width: 90%; max-width: 320px; text-align: center;">
                     <h3 style="margin-bottom: 1rem;">Compartir evento</h3>
-                    <button id="shareLinkOption" style="width: 100%; padding: 0.8rem; margin-bottom: 0.8rem; background: var(--color-primary); color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 600;">
-                        🔗 Compartir enlace
+                    <button id="shareLinkOption" style="width: 100%; padding: 0.8rem; margin-bottom: 0.8rem; background: var(--color-primary); color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <img src="${iconPath}link.png" alt="link" style="width: 18px; height: 18px; filter: brightness(0) invert(1);">
+                        Compartir enlace
                     </button>
-                    <button id="shareDetailsOption" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; background: #2ecc71; color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 600;">
-                        📄 Compartir detalles
+                    <button id="shareDetailsOption" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; background: #2ecc71; color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <img src="${iconPath}info-circle.png" alt="info" style="width: 18px; height: 18px; filter: brightness(0) invert(1);">
+                        Compartir detalles
                     </button>
                     <button id="closeShareModal1" style="width: 100%; padding: 0.8rem; background: #e74c3c; color: white; border: none; border-radius: 30px; cursor: pointer;">
                         Cancelar
                     </button>
                 </div>
             `;
-            
             document.body.appendChild(modal1);
             
-            // Función para abrir segundo modal (cómo compartir)
             const abrirModalOpciones = (tipo, contenido) => {
                 modal1.remove();
-                
                 const modal2 = document.createElement('div');
                 modal2.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.5);
-                    z-index: 10002;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.5); z-index: 10002;
+                    display: flex; align-items: center; justify-content: center;
                 `;
-                
                 const titulo = tipo === 'enlace' ? 'Compartir enlace' : 'Compartir detalles';
-                
                 modal2.innerHTML = `
                     <div style="background: var(--color-surface); border-radius: 24px; padding: 1.5rem; width: 90%; max-width: 350px; text-align: center;">
                         <h3 style="margin-bottom: 1rem;">${titulo}</h3>
                         <div style="display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap;">
-                            <button id="copyClipboard" style="background: #3498db; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.1rem;">📋</button>
-                            <button id="shareFacebook" style="background: #1877f2; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.3rem; font-weight: bold;">f</button>
-                            <button id="shareTwitter" style="background: #1da1f2; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.3rem; font-weight: bold;">𝕏</button>
-                            <button id="shareWhatsapp" style="background: #25d366; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.3rem; font-weight: bold;">WA</button>
-                            <button id="shareTelegram" style="background: #0088cc; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.3rem; font-weight: bold;">TG</button>
+                            <button id="copyClipboard" style="background: #3498db; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                <img src="${iconPath}clipboard-detail.png" alt="copiar" style="width: 28px; height: 28px; filter: brightness(0) invert(1);">
+                            </button>
+                            <button id="shareFacebook" style="background: #1877f2; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.3rem;">f</button>
+                            <button id="shareTwitter" style="background: #1da1f2; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.3rem;">𝕏</button>
+                            <button id="shareWhatsapp" style="background: #25d366; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.1rem;">WA</button>
+                            <button id="shareTelegram" style="background: #0088cc; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.1rem;">TG</button>
                         </div>
-                        <button id="backToFirstModal" style="width: 100%; padding: 0.8rem; margin-bottom: 0.8rem; background: #7f8c8d; color: white; border: none; border-radius: 30px; cursor: pointer;">
-                            ← Volver
-                        </button>
-                        <button id="closeShareModal2" style="width: 100%; padding: 0.8rem; background: #e74c3c; color: white; border: none; border-radius: 30px; cursor: pointer;">
-                            Cancelar
-                        </button>
+                        <button id="backToFirstModal" style="width: 100%; padding: 0.8rem; margin-bottom: 0.8rem; background: #7f8c8d; color: white; border: none; border-radius: 30px; cursor: pointer;">← Volver</button>
+                        <button id="closeShareModal2" style="width: 100%; padding: 0.8rem; background: #e74c3c; color: white; border: none; border-radius: 30px; cursor: pointer;">Cancelar</button>
                     </div>
                 `;
-                
                 document.body.appendChild(modal2);
                 
-                // Eventos del segundo modal
-                document.getElementById('copyClipboard')?.addEventListener('click', () => {
-                    compartirEnRed('copy', contenido, tipo);
-                    modal2.remove();
-                });
-                document.getElementById('shareFacebook')?.addEventListener('click', () => {
-                    compartirEnRed('facebook', contenido, tipo);
-                    modal2.remove();
-                });
-                document.getElementById('shareTwitter')?.addEventListener('click', () => {
-                    compartirEnRed('twitter', contenido, tipo);
-                    modal2.remove();
-                });
-                document.getElementById('shareWhatsapp')?.addEventListener('click', () => {
-                    compartirEnRed('whatsapp', contenido, tipo);
-                    modal2.remove();
-                });
-                document.getElementById('shareTelegram')?.addEventListener('click', () => {
-                    compartirEnRed('telegram', contenido, tipo);
-                    modal2.remove();
-                });
-                document.getElementById('backToFirstModal')?.addEventListener('click', () => {
-                    modal2.remove();
-                    mostrarMenuCompartir(evento);
-                });
+                document.getElementById('copyClipboard')?.addEventListener('click', () => { compartirEnRed('copy', contenido, tipo); modal2.remove(); });
+                document.getElementById('shareFacebook')?.addEventListener('click', () => { compartirEnRed('facebook', contenido, tipo); modal2.remove(); });
+                document.getElementById('shareTwitter')?.addEventListener('click', () => { compartirEnRed('twitter', contenido, tipo); modal2.remove(); });
+                document.getElementById('shareWhatsapp')?.addEventListener('click', () => { compartirEnRed('whatsapp', contenido, tipo); modal2.remove(); });
+                document.getElementById('shareTelegram')?.addEventListener('click', () => { compartirEnRed('telegram', contenido, tipo); modal2.remove(); });
+                document.getElementById('backToFirstModal')?.addEventListener('click', () => { modal2.remove(); mostrarMenuCompartir(evento); });
                 document.getElementById('closeShareModal2')?.addEventListener('click', () => modal2.remove());
                 modal2.addEventListener('click', (e) => { if (e.target === modal2) modal2.remove(); });
             };
             
-            // Eventos del primer modal
-            document.getElementById('shareLinkOption')?.addEventListener('click', () => {
-                abrirModalOpciones('enlace', shareUrl);
-            });
-            document.getElementById('shareDetailsOption')?.addEventListener('click', () => {
-                abrirModalOpciones('detalles', shareText);
-            });
+            document.getElementById('shareLinkOption')?.addEventListener('click', () => abrirModalOpciones('enlace', shareUrl));
+            document.getElementById('shareDetailsOption')?.addEventListener('click', () => abrirModalOpciones('detalles', shareText));
             document.getElementById('closeShareModal1')?.addEventListener('click', () => modal1.remove());
             modal1.addEventListener('click', (e) => { if (e.target === modal1) modal1.remove(); });
         }
         
-        // ==================== OBTENER EVENTO ====================
         const urlParams = new URLSearchParams(window.location.search);
         const eventoId = urlParams.get('id');
         const evento = eventoId ? getEventoById(eventoId) : null;
@@ -439,7 +480,6 @@
         if (!evento) {
             document.getElementById('detalle-contenido').innerHTML = '<div class="loading-spinner">Evento no encontrado</div>';
         } else {
-            // Renderizar evento
             const menores = getEtiquetaAptoMenores(evento.aptoMenores);
             const aire = getEtiquetaAireLibre(evento.aireLibre);
             const container = document.getElementById('detalle-contenido');
@@ -467,7 +507,6 @@
                         <div class="detalle-caracteristicas">
                             <span class="${menores.clase}">${menores.texto}</span>
                             <span class="${aire.clase}">${aire.texto}</span>
-                            ${evento.posibilidadReserva ? '<span class="caracteristica">Posibilidad de reserva</span>' : ''}
                         </div>
                         <div class="detalle-contacto">
                             <h3>Contacto</h3>
@@ -483,78 +522,141 @@
                     <div id="mapa-detalle" style="height: 350px; width: 100%; border-radius: 16px;"></div>
                 </div>
             `;
+
+            // Botón centrar mapa en detalles
+            const mapaContainer = document.querySelector('.mapa-container');
+            if (mapaContainer && window.detalleMap) {
+                const centerBtn = document.createElement('button');
+                centerBtn.className = 'map-center-btn-detalle';
+                centerBtn.innerHTML = `<img id="centerIconLight" src="resources/icons_light/location-pin.png" alt="centrar"><img id="centerIconDark" src="resources/icons_dark/location-pin.png" alt="centrar" style="display:none;">`;
+                mapaContainer.style.position = 'relative';
+                mapaContainer.appendChild(centerBtn);
+                
+                centerBtn.addEventListener('click', () => {
+                    if (window.detalleMap && evento.lat && evento.lng) {
+                        window.detalleMap.setView([evento.lat, evento.lng], 15);
+                    }
+                });
+                
+                function updateCenterIcon() {
+                    const isDark = document.body.classList.contains('dark-mode');
+                    const lightIcon = document.getElementById('centerIconLight');
+                    const darkIcon = document.getElementById('centerIconDark');
+                    if (lightIcon && darkIcon) {
+                        lightIcon.style.display = isDark ? 'none' : 'inline-block';
+                        darkIcon.style.display = isDark ? 'inline-block' : 'none';
+                    }
+                }
+                updateCenterIcon();
+            }
             
-            // ==================== MAPA ====================
             if (evento.lat && evento.lng) {
                 setTimeout(() => {
                     window.detalleMap = L.map('mapa-detalle').setView([evento.lat, evento.lng], 15);
                     L.tileLayer(getTileUrlDetalle(), { attribution: '&copy; CartoDB', minZoom: 10, maxZoom: 18, subdomains: 'abcd' }).addTo(window.detalleMap);
                     L.marker([evento.lat, evento.lng]).addTo(window.detalleMap).bindPopup(`<b>${escapeHtml(evento.nombre)}</b><br>${evento.ubicacion || evento.direccion}`).openPopup();
+                    
+                    // Botón centrar mapa - después de crear el mapa
+                    const mapaContainer = document.querySelector('.mapa-container');
+                    if (mapaContainer && !document.querySelector('.map-center-btn-detalle')) {
+                        const centerBtn = document.createElement('button');
+                        centerBtn.className = 'map-center-btn-detalle';
+                        centerBtn.innerHTML = `<img id="centerIconLight" src="resources/icons_light/location-pin.png" alt="centrar"><img id="centerIconDark" src="resources/icons_dark/location-pin.png" alt="centrar" style="display:none;">`;
+                        mapaContainer.style.position = 'relative';
+                        mapaContainer.appendChild(centerBtn);
+                        
+                        centerBtn.addEventListener('click', () => {
+                            if (window.detalleMap && evento.lat && evento.lng) {
+                                window.detalleMap.setView([evento.lat, evento.lng], 15);
+                            }
+                        });
+                        
+                        function updateCenterIcon() {
+                            const isDark = document.body.classList.contains('dark-mode');
+                            const lightIcon = document.getElementById('centerIconLight');
+                            const darkIcon = document.getElementById('centerIconDark');
+                            if (lightIcon && darkIcon) {
+                                lightIcon.style.display = isDark ? 'none' : 'inline-block';
+                                darkIcon.style.display = isDark ? 'inline-block' : 'none';
+                            }
+                        }
+                        updateCenterIcon();
+                        
+                        const themeObserverMap = new MutationObserver(updateCenterIcon);
+                        themeObserverMap.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                    }
                 }, 200);
-            } else {
-                const mapaContainer = document.getElementById('mapa-detalle');
-                if (mapaContainer) mapaContainer.innerHTML = '<p style="padding: 1rem; text-align: center;">Ubicación no disponible</p>';
             }
             
-            // ==================== BOTONES (Recordatorio + Compartir) en FILA HORIZONTAL ====================
             function agregarBotonesAccion() {
                 const detalleInfo = document.getElementById('detalleInfo');
                 if (!detalleInfo) return;
-                
-                // Verificar si ya existen los botones
                 if (document.getElementById('acciones-container')) return;
                 
                 const accionesContainer = document.createElement('div');
                 accionesContainer.id = 'acciones-container';
                 accionesContainer.style.cssText = 'display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;';
                 
-                // Botón Compartir (siempre visible)
                 const shareBtn = document.createElement('button');
-                shareBtn.textContent = 'Compartir';
-                shareBtn.style.cssText = 'background: var(--color-primary); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem;';
-                shareBtn.onmouseover = () => shareBtn.style.transform = 'translateY(-2px)';
-                shareBtn.onmouseout = () => shareBtn.style.transform = 'translateY(0)';
+                shareBtn.innerHTML = '<img src="resources/icons_dark/share.png" alt="compartir" style="width: 18px; height: 18px; filter: brightness(0) invert(1);"><span>Compartir</span>';
+                shareBtn.style.cssText = 'background: var(--color-primary); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;';
                 shareBtn.addEventListener('click', () => mostrarMenuCompartir(evento));
                 accionesContainer.appendChild(shareBtn);
                 
-                // Botón Recordatorio (toggle, solo para usuarios logueados)
                 const usuario = getUsuarioActual();
                 if (usuario) {
                     const recordatorioBtn = document.createElement('button');
                     recordatorioBtn.id = 'recordatorio-evento-btn';
-                    recordatorioBtn.style.cssText = 'padding: 0.6rem 1.2rem; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem;';
                     
                     const esActivo = typeof esRecordatorio !== 'undefined' ? esRecordatorio(usuario.id, evento.id) : false;
                     
                     const actualizarBotonRecordatorio = () => {
                         const nuevoEstado = typeof esRecordatorio !== 'undefined' ? esRecordatorio(usuario.id, evento.id) : false;
                         if (nuevoEstado) {
-                            recordatorioBtn.textContent = 'Guardado';
-                            recordatorioBtn.style.background = 'var(--color-primary)';
-                            //recordatorioBtn.style.background = '#27ae60';
-                            recordatorioBtn.style.color = 'white';
+                            recordatorioBtn.innerHTML = '<img src="resources/icons_dark/bookmark-filled.png" alt="guardado" style="width: 18px; height: 18px; filter: brightness(0) invert(1);"><span>Guardado</span>';
                             recordatorioBtn.title = 'Haz clic para desactivar recordatorio';
                         } else {
-                            recordatorioBtn.textContent = 'Guardar';
-                            recordatorioBtn.style.background = 'var(--color-primary)';
-                            //recordatorioBtn.style.background = '#f39c12';
-                            recordatorioBtn.style.color = 'white';
+                            recordatorioBtn.innerHTML = '<img src="resources/icons_dark/bookmark.png" alt="guardar" style="width: 18px; height: 18px; filter: brightness(0) invert(1);"><span>Guardar</span>';
                             recordatorioBtn.title = 'Haz clic para recibir notificaciones';
                         }
+                        recordatorioBtn.style.cssText = 'background: var(--color-primary); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;';
                     };
+
+                    // Añadir eventos hover
+                    recordatorioBtn.addEventListener('mouseenter', () => {
+                        const nuevoEstado = typeof esRecordatorio !== 'undefined' ? esRecordatorio(usuario.id, evento.id) : false;
+                        if (nuevoEstado) {
+                            const img = recordatorioBtn.querySelector('img');
+                            if (img) img.src = 'resources/icons_dark/bookmark-minus.png';
+                            recordatorioBtn.title = 'Haz clic para eliminar';
+                        } else {
+                            const img = recordatorioBtn.querySelector('img');
+                            if (img) img.src = 'resources/icons_dark/bookmark-plus.png';
+                            recordatorioBtn.title = 'Haz clic para guardar';
+                        }
+                    });
+
+                    recordatorioBtn.addEventListener('mouseleave', () => {
+                        const nuevoEstado = typeof esRecordatorio !== 'undefined' ? esRecordatorio(usuario.id, evento.id) : false;
+                        if (nuevoEstado) {
+                            const img = recordatorioBtn.querySelector('img');
+                            if (img) img.src = 'resources/icons_dark/bookmark-filled.png';
+                            recordatorioBtn.title = 'Haz clic para desactivar recordatorio';
+                        } else {
+                            const img = recordatorioBtn.querySelector('img');
+                            if (img) img.src = 'resources/icons_dark/bookmark.png';
+                            recordatorioBtn.title = 'Haz clic para recibir notificaciones';
+                        }
+                    });
                     
                     actualizarBotonRecordatorio();
                     
-                    recordatorioBtn.onmouseover = () => recordatorioBtn.style.transform = 'translateY(-2px)';
-                    recordatorioBtn.onmouseout = () => recordatorioBtn.style.transform = 'translateY(0)';
-                    
                     recordatorioBtn.addEventListener('click', () => {
                         const estadoActual = typeof esRecordatorio !== 'undefined' ? esRecordatorio(usuario.id, evento.id) : false;
-                        
                         if (estadoActual) {
                             if (typeof eliminarRecordatorio !== 'undefined' && eliminarRecordatorio(usuario.id, evento.id)) {
                                 actualizarBotonRecordatorio();
-                                alert('❌ Recordatorio eliminado. Ya no recibirás notificaciones de este evento.');
+                                alert('❌ Recordatorio eliminado.');
                             } else {
                                 alert('❌ Error al eliminar el recordatorio.');
                             }
@@ -562,7 +664,7 @@
                             if (typeof agregarRecordatorio !== 'undefined' && agregarRecordatorio(usuario.id, evento.id)) {
                                 actualizarBotonRecordatorio();
                                 if (typeof solicitarPermisoNotificaciones === 'function') solicitarPermisoNotificaciones();
-                                alert('✅ Recordatorio activado. Te notificaremos antes de este evento según tus preferencias.');
+                                alert('✅ Recordatorio activado.');
                             } else {
                                 alert('❌ Error al activar el recordatorio.');
                             }
@@ -571,12 +673,9 @@
                     
                     accionesContainer.appendChild(recordatorioBtn);
                 } else {
-                    // Usuario no logueado - botón que redirige a login
                     const loginBtn = document.createElement('button');
-                    loginBtn.textContent = 'Iniciar sesión para recordar';
-                    loginBtn.style.cssText = 'background: #95a5a6; color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem;';
-                    loginBtn.onmouseover = () => loginBtn.style.transform = 'translateY(-2px)';
-                    loginBtn.onmouseout = () => loginBtn.style.transform = 'translateY(0)';
+                    loginBtn.innerHTML = '<img src="resources/icons_dark/bookmark.png" alt="login" style="width: 18px; height: 18px; filter: brightness(0) invert(1);"><span>Iniciar sesión</span>';
+                    loginBtn.style.cssText = 'background: var(--color-primary); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;';
                     loginBtn.addEventListener('click', () => window.location.href = 'login.html');
                     accionesContainer.appendChild(loginBtn);
                 }
@@ -584,30 +683,22 @@
                 detalleInfo.appendChild(accionesContainer);
             }
             
-            // ==================== BOTONES ADMIN (integrados en la misma línea) ====================
             function agregarBotonesAdmin() {
                 const usuario = getUsuarioActual();
                 const esAdmin = usuario && typeof esAdministrador === 'function' && esAdministrador(usuario);
                 
                 if (esAdmin && evento) {
                     const accionesContainer = document.getElementById('acciones-container');
-                    
                     if (accionesContainer && !document.querySelector('.acciones-admin')) {
-                        // Botón Editar
                         const editarBtn = document.createElement('button');
-                        editarBtn.textContent = 'Editar evento';
-                        editarBtn.style.cssText = 'background: var(--color-primary);; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s ease;';
-                        editarBtn.onmouseover = () => editarBtn.style.transform = 'translateY(-2px)';
-                        editarBtn.onmouseout = () => editarBtn.style.transform = 'translateY(0)';
+                        editarBtn.innerHTML = '<img src="resources/icons_dark/edit-alt.png" alt="editar" style="width: 18px; height: 18px; filter: brightness(0) invert(1);"><span>Editar evento</span>';
+                        editarBtn.style.cssText = 'background: var(--color-primary); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;';
                         editarBtn.addEventListener('click', () => abrirModalEdicion(evento));
                         accionesContainer.appendChild(editarBtn);
                         
-                        // Botón Eliminar
                         const eliminarBtn = document.createElement('button');
-                        eliminarBtn.textContent = 'Eliminar evento';
-                        eliminarBtn.style.cssText = 'background: #e74c3c; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s ease;';
-                        eliminarBtn.onmouseover = () => eliminarBtn.style.transform = 'translateY(-2px)';
-                        eliminarBtn.onmouseout = () => eliminarBtn.style.transform = 'translateY(0)';
+                        eliminarBtn.innerHTML = '<img src="resources/icons_dark/icon_x.png" alt="eliminar" style="width: 18px; height: 18px; filter: brightness(0) invert(1);"><span>Eliminar evento</span>';
+                        eliminarBtn.style.cssText = 'background: #e74c3c; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;';
                         eliminarBtn.addEventListener('click', () => {
                             if (confirm(`¿Eliminar "${evento.nombre}" permanentemente?`)) {
                                 eliminarEvento(evento.id);
@@ -620,7 +711,6 @@
                 }
             }
             
-            // ==================== MODAL EDICIÓN ====================
             function abrirModalEdicion(evento) {
                 const modal = document.createElement('div');
                 modal.className = 'modal-edicion';
@@ -678,14 +768,26 @@
                 modal.querySelector('#cancelarEdicion').addEventListener('click', () => modal.remove());
             }
             
-            // ==================== EJECUTAR ====================
             setTimeout(() => {
                 agregarBotonesAccion();
                 agregarBotonesAdmin();
             }, 300);
         }
+
+        function actualizarFooterLinks() {
+            const usuario = getUsuarioActual();
+            const guardadosLink = document.getElementById('footerGuardadosLink');
+            const promocionLink = document.getElementById('footerPromocionLink');
+            
+            if (guardadosLink) {
+                guardadosLink.style.display = usuario ? 'list-item' : 'none';
+            }
+            if (promocionLink && usuario && esAdministrador(usuario)) {
+                promocionLink.style.display = 'list-item';
+            }
+        }
+        actualizarFooterLinks();
         
-        // ==================== TEMA OSCURO ====================
         function applyThemeDetalle() {
             if (window.detalleMap) {
                 window.detalleMap.eachLayer((layer) => {
@@ -703,14 +805,13 @@
             localStorage.setItem('darkMode', isDarkModeDetalle);
             applyThemeDetalle();
         });
-
-        // Mostrar enlace de promocionar en footer solo para administradores
+        
         const usuarioFooter = getUsuarioActual();
         if (usuarioFooter && esAdministrador(usuarioFooter)) {
             const footerPromo = document.getElementById('footerPromocionLink');
             if (footerPromo) footerPromo.style.display = 'list-item';
         }
-
+        
         function actualizarMenuGuardados() {
             const usuario = getUsuarioActual();
             const menuGuardados = document.getElementById('menuGuardados');

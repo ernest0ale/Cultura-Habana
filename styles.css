@@ -196,8 +196,8 @@ body {
 }
 
 .btn-volver:hover {
-    background: rgb(2, 110, 168);
     transform: translateX(-4px);
+    opacity: 85%;
 }
 
 /* ========== CORRECCIÓN TEMA OSCURO: TÍTULO EN BARRA SUPERIOR ========== */
@@ -1653,7 +1653,6 @@ body.dark-mode .footer-legal a {
     position: relative;
     display: inline-block;
     padding-bottom: 0.5rem;
-    margin-top: 1rem;
 }
 
 .footer-links {
@@ -3036,4 +3035,41 @@ body.dark-mode .social-icon-link {
     border: none;
     height: 1px;
     background: var(--color-border);
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.contact-icon {
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+.contact-item:hover .contact-icon {
+    opacity: 1;
+}
+
+/* Centrar contact-item en móvil */
+@media (max-width: 700px) {
+    .footer-col-2, .footer-col-3 {
+        text-align: center;
+    }
+    .footer-links li {
+        text-align: center;
+    }
+    .contact-item {
+        justify-content: center;
+        text-align: center;
+    }
+    .footer-col-2 h3, .footer-col-3 h3 {
+        text-align: center;
+    }
+    .footer-col-2 h3::after, .footer-col-3 h3::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
 }

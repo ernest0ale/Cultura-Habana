@@ -242,6 +242,27 @@
                 margin-left: 20rem;
             }
         }
+        /* Botón centrar mapa */
+        .map-center-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .map-center-btn:hover {
+            transform: scale(1.05);
+        }
+        .map-center-btn img {
+            width: 20px;
+            height: 20px;
+        }
     </style>
 </head>
 <body>
@@ -416,17 +437,47 @@
             const mapContainer = document.getElementById('mapa-principal');
             if (!mapContainer) return;
             
-            map = L.map('mapa-principal').setView([23.1136, -82.3666], 12);
+            // Forzar tamaño correcto del contenedor antes de inicializar
+            mapContainer.style.height = '100%';
+            mapContainer.style.width = '100%';
+            
+            map = L.map('mapa-principal', {
+                zoomControl: true,
+                fadeAnimation: true,
+                zoomAnimation: true,
+                markerZoomAnimation: true
+            }).setView([23.1136, -82.3666], 12);
             
             L.tileLayer(getTileUrl(), {
-                attribution: '&copy; <a href="https://carto.com/">CartoDB</a> | &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                attribution: '&copy; <a href="https://carto.com/">CartoDB</a>',
+                subdomains: 'abcd',
+                maxZoom: 19,
+                minZoom: 10,
+                errorTileUrl: 'https://{s}.basemaps.cartocdn.com/light_all/12/2045/1368.png'
             }).addTo(map);
             
-            markerClusterGroup = L.markerClusterGroup();
+            // Forzar invalidación de tamaño después de un breve retraso
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
+            
+            markerClusterGroup = L.markerClusterGroup({
+                maxClusterRadius: 50,
+                disableClusteringAtZoom: 15
+            });
             map.addLayer(markerClusterGroup);
             
             mapInitialized = true;
             cargarMarcadores();
+        }
+
+        // Manejar errores de tiles perdidos
+        if (map) {
+            map.on('zoomend', function() {
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 100);
+            });
         }
         
         function cargarMarcadores() {
@@ -526,6 +577,33 @@
         // Inicializar mapa después de que script.js termine de cargar
         setTimeout(function() {
             initMap();
+            setTimeout(function() {
+                const mapaContainer = document.querySelector('.mapa-container-full');
+                if (mapaContainer && !document.querySelector('.map-center-btn')) {
+                    const centerBtn = document.createElement('button');
+                    centerBtn.className = 'map-center-btn';
+                    centerBtn.innerHTML = `<img id="centerIconLightMap" src="resources/icons_light/location-pin.png" alt="centrar"><img id="centerIconDarkMap" src="resources/icons_dark/location-pin.png" alt="centrar" style="display:none;">`;
+                    mapaContainer.appendChild(centerBtn);
+                    
+                    centerBtn.addEventListener('click', () => {
+                        if (map) map.setView([23.1136, -82.3666], 12);
+                    });
+                    
+                    function updateCenterIconMap() {
+                        const isDark = document.body.classList.contains('dark-mode');
+                        const lightIcon = document.getElementById('centerIconLightMap');
+                        const darkIcon = document.getElementById('centerIconDarkMap');
+                        if (lightIcon && darkIcon) {
+                            lightIcon.style.display = isDark ? 'none' : 'inline-block';
+                            darkIcon.style.display = isDark ? 'inline-block' : 'none';
+                        }
+                    }
+                    updateCenterIconMap();
+                    
+                    const themeObserverMap = new MutationObserver(updateCenterIconMap);
+                    themeObserverMap.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                }
+            }, 600);
             renderizarFiltrosMapa();
         }, 500);
         

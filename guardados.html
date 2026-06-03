@@ -137,14 +137,25 @@
                         <li><a href="inicio.html">Inicio</a></li>
                         <li><a href="calendario.html">Calendario</a></li>
                         <li><a href="mapa.html">Mapa</a></li>
+                        <li id="footerGuardadosLink" style="display: none;"><a href="guardados.html">Guardados</a></li>
                         <li id="footerPromocionLink" style="display: none;"><a href="promocion.html">Promocionar</a></li>
                     </ul>
                 </div>
+
                 <div class="footer-col-3">
                     <h3>CONTACTO</h3>
-                    <div class="contact-item"><strong>Tel:</strong> <a href="tel:+5351234567">+53 5123 4567</a></div>
-                    <div class="contact-item"><strong>Co:</strong> <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a></div>
-                    <div class="contact-item"><strong>Ub:</strong> <span>La Habana, Cuba</span></div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/phone.png" alt="tel" class="contact-icon">
+                        <a href="tel:+5351234567">+53 5123 4567</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/envelope.png" alt="email" class="contact-icon">
+                        <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/location.png" alt="ubicación" class="contact-icon">
+                        <span>La Habana, Cuba</span>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -259,6 +270,20 @@
                 menuGuardados.style.display = usuario ? 'block' : 'none';
             }
         }
+
+        function actualizarFooterLinks() {
+            const usuario = getUsuarioActual();
+            const guardadosLink = document.getElementById('footerGuardadosLink');
+            const promocionLink = document.getElementById('footerPromocionLink');
+            
+            if (guardadosLink) {
+                guardadosLink.style.display = usuario ? 'list-item' : 'none';
+            }
+            if (promocionLink && usuario && esAdministrador(usuario)) {
+                promocionLink.style.display = 'list-item';
+            }
+        }
+        actualizarFooterLinks();
         
         renderizarGuardados();
         actualizarMenuGuardados();

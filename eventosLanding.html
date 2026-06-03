@@ -144,10 +144,9 @@
 
     <nav class="landing-navbar">
         <div class="landing-logo">
-            <button id="landingMenuToggle" class="landing-menu-toggle">
-                <img src="resources/icons_light/menu.png" alt="menú">
-            </button>
-            <img src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+            <button id="landingMenuToggle" class="landing-menu-toggle"><img src="resources/icons_light/menu.png"></button>
+            <img class="landing-logo-light" src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+            <img class="landing-logo-dark" src="resources/aguacero_cuba_darklogo_trasnparente.png" alt="Logo" style="display:none;">
             <span>Cultura Habana</span>
         </div>
         <div class="landing-nav-links">
@@ -240,9 +239,18 @@
                 </div>
                 <div class="footer-col-3">
                     <h3>CONTACTO</h3>
-                    <div class="contact-item"><strong>Tel:</strong> <a href="tel:+5351234567">+53 5123 4567</a></div>
-                    <div class="contact-item"><strong>Co:</strong> <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a></div>
-                    <div class="contact-item"><strong>Ub:</strong> <span>La Habana, Cuba</span></div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/phone.png" alt="tel" class="contact-icon">
+                        <a href="tel:+5351234567">+53 5123 4567</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/envelope.png" alt="email" class="contact-icon">
+                        <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/location.png" alt="ubicación" class="contact-icon">
+                        <span>La Habana, Cuba</span>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -259,6 +267,20 @@
     <script src="data.js"></script>
     <script src="landing-common.js"></script>
     <script>
+        function updateLandingLogo() {
+            const isDark = document.body.classList.contains('dark-mode');
+            const lightLogo = document.querySelector('.landing-logo-light');
+            const darkLogo = document.querySelector('.landing-logo-dark');
+            if (lightLogo && darkLogo) {
+                lightLogo.style.display = isDark ? 'none' : 'inline-block';
+                darkLogo.style.display = isDark ? 'inline-block' : 'none';
+            }
+        }
+        updateLandingLogo();
+
+        const logoThemeObserver = new MutationObserver(updateLandingLogo);
+        logoThemeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
         let currentPage = 1;
         const eventsPerPage = 12;
         let allEvents = [];

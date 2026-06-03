@@ -8,6 +8,134 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .wizard-container {
+            background: var(--color-surface);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        .wizard-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 0.5rem;
+        }
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            color: var(--color-text-secondary);
+        }
+        .step.active {
+            color: rgb(2, 90, 138);
+            font-weight: 600;
+            border-bottom: 2px solid rgb(2, 90, 138);
+            margin-bottom: -2px;
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+            color: var(--color-text-primary);
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            background: var(--color-bg);
+            color: var(--color-text-primary);
+        }
+        .number-input-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .number-input-container input {
+            flex: 1;
+            text-align: center;
+        }
+        .number-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            color: var(--color-text-primary);
+        }
+        .number-btn:hover {
+            background: var(--color-border);
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .form-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .form-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .wizard-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-border);
+        }
+        .wizard-buttons button {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            background: rgb(2, 90, 138);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .wizard-buttons button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background: rgb(2, 110, 168);
+        }
+        .wizard-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        @media (max-width: 700px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -480,139 +608,38 @@
         }
         actualizarMenuGuardados();
 
+        // Autollenado de fecha fin cuando se completa hora fin y no hay fecha fin
+        const horaFinInput = document.getElementById('horaFin');
+        const fechaInicioInput = document.getElementById('fechaInicio');
+        const fechaFinInput = document.getElementById('fechaFin');
+
+        function autoFillFechaFin() {
+            const horaFin = horaFinInput.value;
+            const fechaInicio = fechaInicioInput.value;
+            const fechaFinActual = fechaFinInput.value;
+            
+            // Si hay hora fin, no hay fecha fin, y hay fecha inicio
+            if (horaFin && !fechaFinActual && fechaInicio) {
+                const fecha = new Date(fechaInicio);
+                // Si la hora fin es menor que la hora inicio, asumir que es del día siguiente
+                const horaInicio = document.getElementById('horaInicio').value;
+                if (horaInicio && horaFin < horaInicio) {
+                    fecha.setDate(fecha.getDate() + 1);
+                }
+                const nuevaFechaFin = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+                fechaFinInput.value = nuevaFechaFin;
+            }
+        }
+
+        if (horaFinInput) {
+            horaFinInput.addEventListener('change', autoFillFechaFin);
+            horaFinInput.addEventListener('blur', autoFillFechaFin);
+        }
+
         // ==================== INICIALIZAR ====================
         initNumberButtons();
         updateWizard();
         setTimeout(() => { if (document.getElementById('mapa')) initMap(); }, 200);
     </script>
-    
-    <style>
-        .wizard-container {
-            background: var(--color-surface);
-            border-radius: 20px;
-            padding: 1.5rem;
-            margin-top: 1rem;
-        }
-        .wizard-steps {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid var(--color-border);
-            padding-bottom: 0.5rem;
-        }
-        .step {
-            flex: 1;
-            text-align: center;
-            padding: 0.5rem;
-            color: var(--color-text-secondary);
-        }
-        .step.active {
-            color: rgb(2, 90, 138);
-            font-weight: 600;
-            border-bottom: 2px solid rgb(2, 90, 138);
-            margin-bottom: -2px;
-        }
-        .step-content {
-            display: none;
-        }
-        .step-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.3rem;
-            font-weight: 500;
-            color: var(--color-text-primary);
-        }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 0.7rem;
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
-            background: var(--color-bg);
-            color: var(--color-text-primary);
-        }
-        .number-input-container {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .number-input-container input {
-            flex: 1;
-            text-align: center;
-        }
-        .number-btn {
-            width: 40px;
-            height: 40px;
-            background: var(--color-bg);
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1.2rem;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            color: var(--color-text-primary);
-        }
-        .number-btn:hover {
-            background: var(--color-border);
-        }
-        .form-row {
-            display: flex;
-            gap: 1rem;
-        }
-        .form-row .form-group {
-            flex: 1;
-        }
-        .form-checkboxes {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-        .form-checkboxes label {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-        .wizard-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--color-border);
-        }
-        .wizard-buttons button {
-            padding: 0.7rem 1.5rem;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            background: rgb(2, 90, 138);
-            color: white;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .wizard-buttons button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            background: rgb(2, 110, 168);
-        }
-        .wizard-buttons button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        @media (max-width: 700px) {
-            .form-row {
-                flex-direction: column;
-                gap: 0;
-            }
-        }
-    </style>
 </body>
 </html>

@@ -468,15 +468,30 @@
             <h3>Cambiar contraseña</h3>
             <div class="form-group">
                 <label>Contraseña actual</label>
-                <input type="password" id="current-password" placeholder="••••••••">
+                <div class="password-wrapper">
+                    <input type="password" id="current-password" placeholder="••••••••">
+                    <button type="button" class="toggle-password" onclick="togglePerfilPassword('current-password', 'toggleIcon1')">
+                        <img id="toggleIcon1" src="resources/icons_light/eye.png" alt="mostrar" style="width: 20px; height: 20px;">
+                    </button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Nueva contraseña</label>
-                <input type="password" id="new-password" placeholder="••••••••">
+                <div class="password-wrapper">
+                    <input type="password" id="new-password" placeholder="••••••••">
+                    <button type="button" class="toggle-password" onclick="togglePerfilPassword('new-password', 'toggleIcon2')">
+                        <img id="toggleIcon2" src="resources/icons_light/eye.png" alt="mostrar" style="width: 20px; height: 20px;">
+                    </button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Confirmar nueva contraseña</label>
-                <input type="password" id="confirm-new-password" placeholder="••••••••">
+                <div class="password-wrapper">
+                    <input type="password" id="confirm-new-password" placeholder="••••••••">
+                    <button type="button" class="toggle-password" onclick="togglePerfilPassword('confirm-new-password', 'toggleIcon3')">
+                        <img id="toggleIcon3" src="resources/icons_light/eye.png" alt="mostrar" style="width: 20px; height: 20px;">
+                    </button>
+                </div>
             </div>
             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
                 <button id="saveChangesBtn" class="btn-icon" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 8px;">

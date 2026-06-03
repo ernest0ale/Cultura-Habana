@@ -383,9 +383,18 @@
                 </div>
                 <div class="footer-col-3">
                     <h3>CONTACTO</h3>
-                    <div class="contact-item"><strong>Tel:</strong> <a href="tel:+5351234567">+53 5123 4567</a></div>
-                    <div class="contact-item"><strong>Co:</strong> <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a></div>
-                    <div class="contact-item"><strong>Ub:</strong> <span>La Habana, Cuba</span></div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/phone.png" alt="tel" class="contact-icon">
+                        <a href="tel:+5351234567">+53 5123 4567</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/envelope.png" alt="email" class="contact-icon">
+                        <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/location.png" alt="ubicación" class="contact-icon">
+                        <span>La Habana, Cuba</span>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -429,6 +438,31 @@
             const partes = fechaStr.split('-');
             if (partes.length !== 3) return fechaStr;
             return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+
+        function formatRangoEvento(evento) {
+            const fechaInicioFormateada = formatFechaDDMMYYYY(evento.fechaInicio);
+            let textoFecha = fechaInicioFormateada;
+            let textoHoras = evento.horaInicio ? evento.horaInicio.substring(0,5) : '';
+            
+            if (evento.fechaFin && evento.fechaFin !== evento.fechaInicio) {
+                const fechaFinFormateada = formatFechaDDMMYYYY(evento.fechaFin);
+                textoFecha = `${fechaInicioFormateada} - ${fechaFinFormateada}`;
+                
+                if (evento.horaInicio && evento.horaFin) {
+                    textoHoras = `${evento.horaInicio.substring(0,5)} - ${evento.horaFin.substring(0,5)}`;
+                } else if (evento.horaInicio) {
+                    textoHoras = evento.horaInicio.substring(0,5);
+                }
+            } else {
+                if (evento.horaInicio && evento.horaFin) {
+                    textoHoras = `${evento.horaInicio.substring(0,5)} - ${evento.horaFin.substring(0,5)}`;
+                } else if (evento.horaInicio) {
+                    textoHoras = evento.horaInicio.substring(0,5);
+                }
+            }
+            
+            return { fecha: textoFecha, hora: textoHoras };
         }
         
         function cambiarModo() {
@@ -476,28 +510,31 @@
         
         function renderizarEventosCalendario() {
             let eventos = [];
-            
+    
             if (modoActual === 'rango') {
                 const inicio = fechaInicioRango.value;
                 const fin = fechaFinRango.value;
                 
                 if (inicio && fin) {
-                    eventos = getEventos().filter(e => e.fechaInicio >= inicio && e.fechaInicio <= fin);
+                    eventos = getEventosEnRango(inicio, fin);
                 } else if (inicio) {
-                    eventos = getEventos().filter(e => e.fechaInicio >= inicio);
+                    eventos = getEventosActivos().filter(e => e.fechaFin >= inicio);
                 } else {
-                    eventos = getEventos().filter(e => e.fechaInicio >= hoyStr);
+                    eventos = getEventosFuturos();
                     modoTitulo.textContent = 'Próximos eventos';
                 }
             } else {
                 const fecha = fechaEspecifica.value;
                 if (fecha) {
-                    eventos = getEventos().filter(evento => evento.fechaInicio === fecha);
+                    eventos = getEventosActivos().filter(evento => 
+                        evento.fechaInicio <= fecha && evento.fechaFin >= fecha
+                    );
                 } else {
                     eventos = [];
                 }
             }
             
+            // Aplicar filtros...
             if (categoriasSeleccionadasCalendario.length > 0) {
                 eventos = eventos.filter(e => categoriasSeleccionadasCalendario.includes(e.categoria));
             }
@@ -523,16 +560,17 @@
             
             container.innerHTML = eventos.map(evento => {
                 const aptoMenoresClass = evento.aptoMenores ? 'badge-menores-si' : 'badge-menores-no';
-                const aptoMenoresText = evento.aptoMenores ? '👶 Apto menores' : '👤 Adultos';
+                const aptoMenoresText = evento.aptoMenores ? 'Todas las edades' : 'Solo dultos';
                 const aireLibreClass = evento.aireLibre ? 'badge-aire-si' : 'badge-aire-no';
-                const aireLibreText = evento.aireLibre ? '🌳 Aire libre' : '🏠 Interior';
+                const aireLibreText = evento.aireLibre ? 'Aire libre' : 'Bajo techo';
+                const rango = formatRangoEvento(evento);
                 
                 return `
                     <div class="evento-item" onclick="window.location.href='detallesEventoLanding.html?id=${evento.id}'">
                         <img src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/60/60'">
                         <div class="evento-item-info">
                             <h4>${evento.nombre}</h4>
-                            <p class="fecha">${formatFechaDDMMYYYY(evento.fechaInicio)} ${evento.horaInicio ? '· ' + evento.horaInicio.substring(0,5) : ''}</p>
+                            <p class="fecha">${rango.fecha} ${rango.hora ? '· ' + rango.hora : ''}</p>
                             <span class="categoria-badge">${evento.categoria}</span>
                             <span class="${aptoMenoresClass}">${aptoMenoresText}</span>
                             <span class="${aireLibreClass}">${aireLibreText}</span>

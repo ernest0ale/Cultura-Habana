@@ -181,6 +181,26 @@
                 margin-left: 23rem;
             }
         }
+        .map-center-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .map-center-btn:hover {
+            transform: scale(1.05);
+        }
+        .map-center-btn img {
+            width: 20px;
+            height: 20px;
+        }
     </style>
 </head>
 <body data-page="mapaLanding">
@@ -222,7 +242,9 @@
     <nav class="landing-navbar">
         <div class="landing-logo">
             <button id="landingMenuToggle" class="landing-menu-toggle"><img src="resources/icons_light/menu.png"></button>
-            <img src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo"><span>Cultura Habana</span>
+            <img class="landing-logo-light" src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+            <img class="landing-logo-dark" src="resources/aguacero_cuba_darklogo_trasnparente.png" alt="Logo" style="display:none;">
+            <span>Cultura Habana</span>
         </div>
         <div class="landing-nav-links">
             <a href="index.html" class="landing-nav-link"><img src="resources/icons_light/home-alt.png"> Inicio</a>
@@ -267,6 +289,20 @@
     <script src="data.js"></script>
     <script src="landing-common.js"></script>
     <script>
+        function updateLandingLogo() {
+        const isDark = document.body.classList.contains('dark-mode');
+        const lightLogo = document.querySelector('.landing-logo-light');
+        const darkLogo = document.querySelector('.landing-logo-dark');
+        if (lightLogo && darkLogo) {
+            lightLogo.style.display = isDark ? 'none' : 'inline-block';
+            darkLogo.style.display = isDark ? 'inline-block' : 'none';
+        }
+    }
+    updateLandingLogo();
+
+    const logoThemeObserver = new MutationObserver(updateLandingLogo);
+    logoThemeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
         let map, markerClusterGroup;
         let categoriasActivas = [];
 
@@ -363,7 +399,34 @@
         });
         themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-        setTimeout(() => { initMap(); renderizarFiltros(); }, 300);
+        setTimeout(() => { initMap(); // Botón centrar mapa
+            setTimeout(function() {
+                const mapaContainer = document.querySelector('.mapa-landing-container');
+                if (mapaContainer && !document.querySelector('.map-center-btn')) {
+                    const centerBtn = document.createElement('button');
+                    centerBtn.className = 'map-center-btn';
+                    centerBtn.innerHTML = `<img id="centerIconLightMap" src="resources/icons_light/location-pin.png" alt="centrar"><img id="centerIconDarkMap" src="resources/icons_dark/location-pin.png" alt="centrar" style="display:none;">`;
+                    mapaContainer.appendChild(centerBtn);
+                    
+                    centerBtn.addEventListener('click', () => {
+                        if (map) map.setView([23.1136, -82.3666], 12);
+                    });
+                    
+                    function updateCenterIconMap() {
+                        const isDark = document.body.classList.contains('dark-mode');
+                        const lightIcon = document.getElementById('centerIconLightMap');
+                        const darkIcon = document.getElementById('centerIconDarkMap');
+                        if (lightIcon && darkIcon) {
+                            lightIcon.style.display = isDark ? 'none' : 'inline-block';
+                            darkIcon.style.display = isDark ? 'inline-block' : 'none';
+                        }
+                    }
+                    updateCenterIconMap();
+                    
+                    const themeObserverMap = new MutationObserver(updateCenterIconMap);
+                    themeObserverMap.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                }
+            }, 600); renderizarFiltros(); }, 300);
         window.addEventListener('resize', () => map?.invalidateSize());
     </script>
 </body>

@@ -50,15 +50,28 @@
         .detalle-info strong {
             color: var(--color-text-primary);
         }
-        .btn-login-detalle {
-            display: inline-block;
+        .btn-login-detalle, .btn-compartir-landing {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             margin-top: 1rem;
             padding: 0.6rem 1.5rem;
             background: var(--color-primary);
             color: white;
             border-radius: 30px;
+            border: none;
             text-decoration: none;
             font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-login-detalle:hover, .btn-compartir-landing:hover {
+            transform: translateY(-2px);
+            opacity: 85%;
+        }
+        .btn-login-detalle img {
+            width: 18px;
+            height: 18px;
+            filter: brightness(0) invert(1);
         }
         .btn-volver {
             display: inline-block;
@@ -75,6 +88,8 @@
             margin-top: 1.5rem;
             border-radius: 16px;
             overflow: hidden;
+            position: relative;
+            z-index: 1;
         }
         body.dark-mode .leaflet-control-zoom-in,
         body.dark-mode .leaflet-control-zoom-out {
@@ -93,31 +108,101 @@
         body.dark-mode .leaflet-container {
             background-color: #1a1a1a;
         }
-        @media (max-width: 700px) {
-            .detalle-info h1 { font-size: 1.4rem; }
-            .detalle-card{
-                margin-left: 1rem;
-                width: 590px;
-            }
-            .btn-volver{
-                margin-left: 1rem;
-            }
-            .detalle-poster{
-                margin-left: 6rem;
-            }
-        }
-        /* Corregir z-index del mapa */
-        .mapa-detalle {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Asegurar que la barra de navegación esté por encima */
         .landing-navbar {
             position: sticky;
             top: 0;
             z-index: 1000;
             background: var(--color-surface);
+        }
+        @media (max-width: 700px) {
+            .detalle-info h1 { font-size: 1.4rem; }
+            .detalle-card {
+                margin-left: 0;
+                width: 100%;
+            }
+            .btn-volver {
+                margin-left: 0;
+            }
+            .detalle-poster {
+                margin-left: 0;
+            }
+            .btn-compartir-landing {
+                padding: 0.5rem 1rem !important;
+            }
+        }
+        .btn-login-detalle{
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .btn-login-detalle img{
+            width:18px;
+            height:18px;
+            filter: brightness(0) invert(1);
+        }
+        .btn-volver-landing {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.2rem;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 30px;
+            text-decoration: none;
+            margin-left: 7rem;
+            transition: all 0.3s ease;
+        }
+        .btn-volver-landing:hover {
+            transform: translateX(-4px);
+            opacity: 85%;
+        }
+
+        /* Botón centrar mapa en detalles - ESQUINA SUPERIOR DERECHA */
+        .map-center-btn-detalle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .map-center-btn-detalle:hover {
+            transform: scale(1.05);
+            background: var(--color-bg);
+        }
+        .map-center-btn-detalle img {
+            width: 23px;
+            height: 23px;
+        }
+        .mapa-detalle {
+            position: relative;
+        }
+        /* Asegurar que la barra superior esté por encima del mapa y sus controles */
+        .top-bar {
+            z-index: 1002 !important;
+        }
+
+        /* Ajustar controles del mapa para que no se superpongan */
+        .leaflet-control-zoom {
+            z-index: 1001 !important;
+        }
+
+        .map-center-btn-detalle {
+            z-index: 1001 !important;
+        }
+
+        .leaflet-control-attribution {
+            font-size: 8px !important;
+            z-index: 1000 !important;
         }
     </style>
 </head>
@@ -148,7 +233,9 @@
     <nav class="landing-navbar">
         <div class="landing-logo">
             <button id="landingMenuToggle" class="landing-menu-toggle"><img src="resources/icons_light/menu.png"></button>
-            <img src="resources/aguacero_cuba_logo_trasnparente.png"><span>Cultura Habana</span>
+            <img class="landing-logo-light" src="resources/aguacero_cuba_logo_trasnparente.png" alt="Logo">
+            <img class="landing-logo-dark" src="resources/aguacero_cuba_darklogo_trasnparente.png" alt="Logo" style="display:none;">
+            <span>Cultura Habana</span>
         </div>
         <div class="landing-nav-links">
             <a href="index.html" class="landing-nav-link"><img src="resources/icons_light/home-alt.png"> Inicio</a>
@@ -176,7 +263,7 @@
             <div class="loading-spinner">Cargando evento...</div>
         </div>
         <div style="margin-top: 1rem;">
-            <a href="javascript:history.back()" class="btn-volver">← Volver atrás</a>
+            <a href="javascript:history.back()" class="btn-volver-landing">← Volver atrás</a>
         </div>
     </div>
 
@@ -217,9 +304,18 @@
                 </div>
                 <div class="footer-col-3">
                     <h3>CONTACTO</h3>
-                    <div class="contact-item"><strong>Tel:</strong> <a href="tel:+5351234567">+53 5123 4567</a></div>
-                    <div class="contact-item"><strong>Co:</strong> <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a></div>
-                    <div class="contact-item"><strong>Ub:</strong> <span>La Habana, Cuba</span></div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/phone.png" alt="tel" class="contact-icon">
+                        <a href="tel:+5351234567">+53 5123 4567</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/envelope.png" alt="email" class="contact-icon">
+                        <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/location.png" alt="ubicación" class="contact-icon">
+                        <span>La Habana, Cuba</span>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -236,6 +332,20 @@
     <script src="data.js"></script>
     <script src="landing-common.js"></script>
     <script>
+        function updateLandingLogo() {
+            const isDark = document.body.classList.contains('dark-mode');
+            const lightLogo = document.querySelector('.landing-logo-light');
+            const darkLogo = document.querySelector('.landing-logo-dark');
+            if (lightLogo && darkLogo) {
+                lightLogo.style.display = isDark ? 'none' : 'inline-block';
+                darkLogo.style.display = isDark ? 'inline-block' : 'none';
+            }
+        }
+        updateLandingLogo();
+
+        const logoThemeObserver = new MutationObserver(updateLandingLogo);
+        logoThemeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
         const urlParams = new URLSearchParams(window.location.search);
         const eventoId = urlParams.get('id');
         const evento = eventoId ? getEventoById(eventoId) : null;
@@ -247,11 +357,16 @@
             const [year, month, day] = fechaStr.split('-');
             const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
             const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-            
             const fechaUTC = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
             const diaSemana = dias[fechaUTC.getUTCDay()];
-            
             return `${diaSemana}, ${parseInt(day)} de ${meses[parseInt(month) - 1]} de ${year}`;
+        }
+        
+        function formatDateShort(fechaStr) {
+            if (!fechaStr) return '';
+            const [year, month, day] = fechaStr.split('-');
+            const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+            return `${parseInt(day)} ${meses[parseInt(month) - 1]}`;
         }
         
         function getTileUrl() {
@@ -283,63 +398,6 @@
             }
         }
         
-        if (!evento) {
-            document.getElementById('detalle-contenido').innerHTML = '<p>Evento no encontrado</p>';
-        } else {
-            document.getElementById('detalle-contenido').innerHTML = `
-                <img class="detalle-poster" src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/800/400'">
-                <div class="detalle-info">
-                    <span class="categoria-badge">${evento.categoria}</span>
-                    <h1>${evento.nombre}</h1>
-                    <p><strong>Fecha:</strong> ${formatDateLocal(evento.fechaInicio)} ${evento.horaInicio ? '· ' + evento.horaInicio : ''}</p>
-                    ${evento.fechaFin && evento.fechaFin !== evento.fechaInicio ? `<p><strong>Hasta:</strong> ${formatDateLocal(evento.fechaFin)} ${evento.horaFin ? '· ' + evento.horaFin : ''}</p>` : ''}
-                    <p><strong>Precio:</strong> ${evento.precio === 0 ? 'Gratis' : evento.precio + ' CUP'}</p>
-                    <p><strong>Sede:</strong> ${evento.sede || 'No especificada'}</p>
-                    <p><strong>Ubicación:</strong> ${evento.ubicacion || evento.direccion || 'No especificada'}</p>
-                    <p><strong>Descripción:</strong> ${evento.descripcion || 'Sin descripción disponible'}</p>
-                    <div class="detalle-caracteristicas" style="margin: 1rem 0;">
-                        ${evento.aptoMenores ? '<span style="display:inline-block; background:#27ae60; color:white; padding:0.3rem 0.8rem; border-radius:20px; margin-right:0.5rem;">Todas las edades</span>' : '<span style="display:inline-block; background:#e67e22; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Solo adultos</span>'}
-                        ${evento.aireLibre ? '<span style="display:inline-block; background:#3498db; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Aire libre</span>' : '<span style="display:inline-block; background:#7f8c8d; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Bajo techo</span>'}
-                    </div>
-                    <div class="detalle-contacto">
-                        <h3>Contacto</h3>
-                        <p><strong>Organizador:</strong> ${evento.organizador || 'No especificado'}</p>
-                        <p><strong>Teléfono:</strong> ${evento.telefono || 'No disponible'}</p>
-                        ${evento.posibilidadReserva && evento.contactoReserva ? `<p><strong>Reservas:</strong> ${evento.contactoReserva}</p>` : ''}
-                        ${evento.posibilidadReserva && !evento.contactoReserva ? `<p><strong>Reservas:</strong> Contactar al organizador</p>` : ''}
-                    </div>
-                    ${evento.lat && evento.lng ? `<div id="mapa-detalle" class="mapa-detalle" style="height: 300px;"></div>` : ''}
-                    <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
-                        <button id="compartir-btn-landing" class="btn-icon" style="background: var(--color-primary);">
-                            <img src="${getIconUrl('share.png')}" alt="compartir"><span>Compartir</span>
-                        </button>
-                        <a href="login.html" class="btn-login-detalle" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                            <img src="${getIconUrl('bookmark.png')}" alt="guardar" style="width:18px; height:18px; filter: brightness(0) invert(1);">
-                            Iniciar sesión
-                        </a>
-                    </div>
-                </div>
-            `;
-            
-            if (evento.lat && evento.lng) {
-                setTimeout(() => {
-                    initDetailMap(evento.lat, evento.lng, evento.nombre, evento.ubicacion || evento.direccion);
-                }, 200);
-            }
-        }
-
-        function getIconUrl(iconName) {
-            const isDark = document.body.classList.contains('dark-mode');
-            return `resources/icons_dark/${iconName}`;
-        }
-
-        // Después de renderizar el contenido, agregar:
-        const shareBtn = document.getElementById('compartir-btn-landing');
-        if (shareBtn) {
-            shareBtn.addEventListener('click', () => mostrarMenuCompartir(evento));
-        }
-        
-        // ==================== FUNCIÓN COPIAR AL PORTAPAPELES ====================
         async function copyToClipboard(text) {
             try {
                 await navigator.clipboard.writeText(text);
@@ -349,8 +407,7 @@
                 return false;
             }
         }
-
-        // ==================== GENERAR TEXTO PARA COMPARTIR ====================
+        
         function generarTextoCompartir(evento) {
             const lines = [];
             const emoji = getIcono(evento.categoria);
@@ -378,15 +435,14 @@
             if (evento.direccion || evento.ubicacion) lines.push(`🧭 ${evento.direccion || evento.ubicacion}`);
             if (evento.precio === 0) lines.push(`🎟️ Gratis`);
             else lines.push(`🎟️ ${evento.precio} CUP`);
-            lines.push(evento.aptoMenores ? `👶 Todas las edades` : `👶 Solo adultos`);
-            lines.push(evento.aireLibre ? `🌳 Al aire libre` : `🌳 Espacio cerrado`);
+            lines.push(evento.aptoMenores ? `👶 Todas las edades` : `🔞 Solo adultos`);
+            lines.push(evento.aireLibre ? `🌳 Aire libre` : `🏠 Bajo techo`);
             if (evento.telefono) lines.push(`📞 ${evento.telefono}`);
             if (evento.contactoReserva) lines.push(`📱 Reservas: ${evento.contactoReserva}`);
             lines.push(`\n🔗 Más información: ${window.location.href}`);
             return lines.join('\n');
         }
-
-        // ==================== COMPARTIR EN REDES ====================
+        
         function compartirEnRed(red, contenido, tipo) {
             let texto = '';
             if (tipo === 'enlace') {
@@ -408,24 +464,31 @@
                 window.open(urls[red], '_blank', 'width=600,height=400');
             }
         }
-
+        
         function mostrarMenuCompartir(evento) {
             const shareUrl = window.location.href;
             const shareText = generarTextoCompartir(evento);
+            
             const modal1 = document.createElement('div');
             modal1.style.cssText = `
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                 background: rgba(0,0,0,0.5); z-index: 10001;
                 display: flex; align-items: center; justify-content: center;
             `;
+            
+            const isDark = document.body.classList.contains('dark-mode');
+            const iconPath = isDark ? 'resources/icons_dark/' : 'resources/icons_light/';
+            
             modal1.innerHTML = `
                 <div style="background: var(--color-surface); border-radius: 24px; padding: 1.5rem; width: 90%; max-width: 320px; text-align: center;">
                     <h3 style="margin-bottom: 1rem;">Compartir evento</h3>
-                    <button id="shareLinkOption" style="width: 100%; padding: 0.8rem; margin-bottom: 0.8rem; background: var(--color-primary); color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 600;">
-                        🔗 Compartir enlace
+                    <button id="shareLinkOption" style="width: 100%; padding: 0.8rem; margin-bottom: 0.8rem; background: var(--color-primary); color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <img src="${iconPath}link.png" alt="link" style="width: 18px; height: 18px; filter: brightness(0) invert(1);">
+                        Compartir enlace
                     </button>
-                    <button id="shareDetailsOption" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; background: #2ecc71; color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 600;">
-                        📄 Compartir detalles
+                    <button id="shareDetailsOption" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; background: #2ecc71; color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <img src="${iconPath}info-circle.png" alt="info" style="width: 18px; height: 18px; filter: brightness(0) invert(1);">
+                        Compartir detalles
                     </button>
                     <button id="closeShareModal1" style="width: 100%; padding: 0.8rem; background: #e74c3c; color: white; border: none; border-radius: 30px; cursor: pointer;">
                         Cancelar
@@ -433,6 +496,7 @@
                 </div>
             `;
             document.body.appendChild(modal1);
+            
             const abrirModalOpciones = (tipo, contenido) => {
                 modal1.remove();
                 const modal2 = document.createElement('div');
@@ -446,7 +510,9 @@
                     <div style="background: var(--color-surface); border-radius: 24px; padding: 1.5rem; width: 90%; max-width: 350px; text-align: center;">
                         <h3 style="margin-bottom: 1rem;">${titulo}</h3>
                         <div style="display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap;">
-                            <button id="copyClipboard" style="background: #3498db; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.1rem;">📋</button>
+                            <button id="copyClipboard" style="background: #3498db; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                <img src="${iconPath}clipboard-detail.png" alt="copiar" style="width: 28px; height: 28px; filter: brightness(0) invert(1);">
+                            </button>
                             <button id="shareFacebook" style="background: #1877f2; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.3rem;">f</button>
                             <button id="shareTwitter" style="background: #1da1f2; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.3rem;">𝕏</button>
                             <button id="shareWhatsapp" style="background: #25d366; width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; color: white; font-size: 1.1rem;">WA</button>
@@ -457,6 +523,7 @@
                     </div>
                 `;
                 document.body.appendChild(modal2);
+                
                 document.getElementById('copyClipboard')?.addEventListener('click', () => { compartirEnRed('copy', contenido, tipo); modal2.remove(); });
                 document.getElementById('shareFacebook')?.addEventListener('click', () => { compartirEnRed('facebook', contenido, tipo); modal2.remove(); });
                 document.getElementById('shareTwitter')?.addEventListener('click', () => { compartirEnRed('twitter', contenido, tipo); modal2.remove(); });
@@ -466,19 +533,94 @@
                 document.getElementById('closeShareModal2')?.addEventListener('click', () => modal2.remove());
                 modal2.addEventListener('click', (e) => { if (e.target === modal2) modal2.remove(); });
             };
+            
             document.getElementById('shareLinkOption')?.addEventListener('click', () => abrirModalOpciones('enlace', shareUrl));
             document.getElementById('shareDetailsOption')?.addEventListener('click', () => abrirModalOpciones('detalles', shareText));
             document.getElementById('closeShareModal1')?.addEventListener('click', () => modal1.remove());
             modal1.addEventListener('click', (e) => { if (e.target === modal1) modal1.remove(); });
         }
-
-        // Asignar evento al botón compartir
+        
+        if (!evento) {
+            document.getElementById('detalle-contenido').innerHTML = '<p>Evento no encontrado</p>';
+        } else {
+            document.getElementById('detalle-contenido').innerHTML = `
+                <img class="detalle-poster" src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/800/400'">
+                <div class="detalle-info">
+                    <span class="categoria-badge">${evento.categoria}</span>
+                    <h1>${evento.nombre}</h1>
+                    <p><strong>Fecha:</strong> ${formatDateLocal(evento.fechaInicio)} ${evento.horaInicio ? '· ' + evento.horaInicio : ''}</p>
+                    ${evento.fechaFin && evento.fechaFin !== evento.fechaInicio ? `<p><strong>Hasta:</strong> ${formatDateLocal(evento.fechaFin)} ${evento.horaFin ? '· ' + evento.horaFin : ''}</p>` : ''}
+                    <p><strong>Precio:</strong> ${evento.precio === 0 ? 'Gratis' : evento.precio + ' CUP'}</p>
+                    <p><strong>Sede:</strong> ${evento.sede || 'No especificada'}</p>
+                    <p><strong>Ubicación:</strong> ${evento.ubicacion || evento.direccion || 'No especificada'}</p>
+                    <p><strong>Descripción:</strong> ${evento.descripcion || 'Sin descripción disponible'}</p>
+                    <div class="detalle-caracteristicas" style="margin: 1rem 0;">
+                        ${evento.aptoMenores ? '<span style="display:inline-block; background:#27ae60; color:white; padding:0.3rem 0.8rem; border-radius:20px; margin-right:0.5rem;">Todas las edades</span>' : '<span style="display:inline-block; background:#e67e22; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Solo adultos</span>'}
+                        ${evento.aireLibre ? '<span style="display:inline-block; background:#3498db; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Aire libre</span>' : '<span style="display:inline-block; background:#7f8c8d; color:white; padding:0.3rem 0.8rem; border-radius:20px;">Bajo techo</span>'}
+                    </div>
+                    <div class="detalle-contacto">
+                        <h3>Contacto</h3>
+                        <p><strong>Organizador:</strong> ${evento.organizador || 'No especificado'}</p>
+                        <p><strong>Teléfono:</strong> ${evento.telefono || 'No disponible'}</p>
+                        ${evento.posibilidadReserva && evento.contactoReserva ? `<p><strong>Reservas:</strong> ${evento.contactoReserva}</p>` : ''}
+                        ${evento.posibilidadReserva && !evento.contactoReserva ? `<p><strong>Reservas:</strong> Contactar al organizador</p>` : ''}
+                    </div>
+                    ${evento.lat && evento.lng ? `<div id="mapa-detalle" class="mapa-detalle" style="height: 300px;"></div>` : ''}
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; align-items: center;">
+                        <button id="compartir-btn-landing" class="btn-compartir-landing">
+                            <img src="resources/icons_dark/share.png" alt="compartir" style="width: 18px; height: 18px; filter: brightness(0) invert(1);">
+                            <span>Compartir</span>
+                        </button>
+                        <a href="login.html" class="btn-login-detalle">
+                            <img src="resources/icons_dark/bookmark.png" alt="guardar">
+                            Iniciar sesión
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            if (evento.lat && evento.lng) {
+                setTimeout(() => {
+                    initDetailMap(evento.lat, evento.lng, evento.nombre, evento.ubicacion || evento.direccion);
+                    
+                    // Botón centrar mapa
+                    const mapaContainer = document.querySelector('.mapa-detalle');
+                    if (mapaContainer && detailMap && !document.querySelector('.map-center-btn-detalle')) {
+                        const centerBtn = document.createElement('button');
+                        centerBtn.className = 'map-center-btn-detalle';
+                        centerBtn.innerHTML = `<img id="centerIconLight" src="resources/icons_light/location-pin.png" alt="centrar"><img id="centerIconDark" src="resources/icons_dark/location-pin.png" alt="centrar" style="display:none;">`;
+                        mapaContainer.style.position = 'relative';
+                        mapaContainer.appendChild(centerBtn);
+                        
+                        centerBtn.addEventListener('click', () => {
+                            if (detailMap && evento.lat && evento.lng) {
+                                detailMap.setView([evento.lat, evento.lng], 15);
+                            }
+                        });
+                        
+                        function updateCenterIcon() {
+                            const isDark = document.body.classList.contains('dark-mode');
+                            const lightIcon = document.getElementById('centerIconLight');
+                            const darkIcon = document.getElementById('centerIconDark');
+                            if (lightIcon && darkIcon) {
+                                lightIcon.style.display = isDark ? 'none' : 'inline-block';
+                                darkIcon.style.display = isDark ? 'inline-block' : 'none';
+                            }
+                        }
+                        updateCenterIcon();
+                        
+                        const themeObserverMap = new MutationObserver(updateCenterIcon);
+                        themeObserverMap.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                    }
+                }, 250);
+            }
+        }
+        
         const shareBtnLanding = document.getElementById('compartir-btn-landing');
         if (shareBtnLanding && evento) {
             shareBtnLanding.addEventListener('click', () => mostrarMenuCompartir(evento));
         }
-
-        // Observar cambios de tema para actualizar el mapa
+        
         const themeObserver = new MutationObserver(() => {
             updateDetailMapTheme();
         });

@@ -15,11 +15,55 @@ function puedeCrearEvento(usuario) {
   return esAdministrador(usuario);
 }
 
+// Obtener fecha actual en formato YYYY-MM-DD
+function getFechaActual() {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+}
+
+// Obtener hora actual en formato HH:MM
+function getHoraActual() {
+  const ahora = new Date();
+  return `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
+}
+
+// Verificar si un evento está activo (no ha expirado)
+function eventoEstaActivo(evento) {
+  const hoyStr = getFechaActual();
+  const ahoraHora = getHoraActual();
+  
+  // Si la fecha de fin es menor que hoy, expiró
+  if (evento.fechaFin < hoyStr) return false;
+  
+  // Si la fecha de fin es igual a hoy, verificar hora
+  if (evento.fechaFin === hoyStr) {
+    const horaFin = evento.horaFin || evento.horaInicio || "23:59";
+    if (horaFin < ahoraHora) return false;
+  }
+  
+  return true;
+}
+
+// Verificar si un evento debe ser eliminado permanentemente (24 horas después de expirado)
+function eventoDebeSerEliminado(evento) {
+  const hoyStr = getFechaActual();
+  const ahoraHora = getHoraActual();
+  
+  // Calcular fecha de expiración + 1 día
+  const fechaExpiracion = new Date(evento.fechaFin);
+  const horaFin = evento.horaFin || evento.horaInicio || "00:00";
+  const [horas, minutos] = horaFin.split(':');
+  fechaExpiracion.setHours(parseInt(horas) + 24, parseInt(minutos));
+  
+  const ahora = new Date();
+  return ahora > fechaExpiracion;
+}
+
 const eventosEjemplo = [
-  // ... (tus eventos de ejemplo existentes) ...
+  // Eventos PASADOS (para probar que se oculten/eliminen)
   {
     id: "evt_001",
-    nombre: "VAN VAN - Concierto Especial",
+    nombre: "VAN VAN - Concierto Especial (Pasado)",
     categoria: "Conciertos",
     descripcion: "La leyenda de la música cubana en concierto único.",
     fechaInicio: "2026-05-15",
@@ -43,7 +87,7 @@ const eventosEjemplo = [
   },
   {
     id: "evt_002",
-    nombre: "Lachy Fortuna - Session Especial",
+    nombre: "Lachy Fortuna - Session Especial (Pasado)",
     categoria: "Farándula",
     descripcion: "El ex-charanguero presenta su nuevo proyecto musical.",
     fechaInicio: "2026-05-18",
@@ -67,7 +111,7 @@ const eventosEjemplo = [
   },
   {
     id: "evt_003",
-    nombre: "Taller de Pintura Calcónica",
+    nombre: "Taller de Pintura Calcónica (Pasado)",
     categoria: "Talleres",
     descripcion: "Aprende técnicas de pintura calcónica.",
     fechaInicio: "2026-05-20",
@@ -89,13 +133,14 @@ const eventosEjemplo = [
     posibilidadReserva: false,
     creadoPor: "organizador",
   },
+  // Eventos ACTIVOS (junio/julio 2026)
   {
     id: "evt_004",
     nombre: "Exposición de Arte Contemporáneo",
     categoria: "Exposiciones",
     descripcion: "Obras de artistas cubanos emergentes.",
-    fechaInicio: "2026-05-25",
-    fechaFin: "2026-06-15",
+    fechaInicio: "2026-06-01",
+    fechaFin: "2026-06-30",
     horaInicio: "10:00",
     horaFin: "18:00",
     precio: 0,
@@ -118,8 +163,8 @@ const eventosEjemplo = [
     nombre: "Cine Cubano: Retrospectiva",
     categoria: "Cine",
     descripcion: "Funciones especiales de cine cubano.",
-    fechaInicio: "2026-05-28",
-    fechaFin: "2026-06-05",
+    fechaInicio: "2026-06-01",
+    fechaFin: "2026-06-15",
     horaInicio: "15:00",
     horaFin: "22:00",
     precio: 100,
@@ -161,14 +206,64 @@ const eventosEjemplo = [
     posibilidadReserva: true,
     creadoPor: "organizador",
   },
+  {
+    id: "evt_007",
+    nombre: "Concierto de Piano - Clásicos Cubanos",
+    categoria: "Conciertos",
+    descripcion: "Noche de piano con los mejores clásicos cubanos.",
+    fechaInicio: "2026-06-10",
+    fechaFin: "2026-06-10",
+    horaInicio: "20:00",
+    horaFin: "22:30",
+    precio: 250,
+    ubicacion: "Teatro Amadeo Roldán, Calle 23",
+    sede: "Teatro Amadeo Roldán",
+    municipio: "Plaza de la Revolución",
+    direccion: "Calle 23 # 158, Vedado",
+    lat: 23.1405,
+    lng: -82.3815,
+    poster: "https://picsum.photos/id/29/400/300",
+    organizador: "Instituto de Música",
+    telefono: "+53 55550007",
+    aptoMenores: true,
+    aireLibre: false,
+    posibilidadReserva: true,
+    creadoPor: "organizador",
+  },
+  {
+    id: "evt_008",
+    nombre: "Obra de Teatro: La Casa de Bernarda Alba",
+    categoria: "Teatro",
+    descripcion: "Adaptación de la obra clásica de Lorca.",
+    fechaInicio: "2026-06-12",
+    fechaFin: "2026-06-14",
+    horaInicio: "19:00",
+    horaFin: "21:00",
+    precio: 300,
+    ubicacion: "Teatro Bertolt Brecht, Calle 13",
+    sede: "Teatro Bertolt Brecht",
+    municipio: "Vedado",
+    direccion: "Calle 13 # 456, Vedado",
+    lat: 23.1420,
+    lng: -82.3790,
+    poster: "https://picsum.photos/id/33/400/300",
+    organizador: "Compañía Teatral",
+    telefono: "+53 55550008",
+    aptoMenores: false,
+    aireLibre: false,
+    posibilidadReserva: true,
+    creadoPor: "organizador",
+  },
 ];
 
 function inicializarDatos() {
   console.log("🔧 Inicializando datos...");
-
-  // 🔥 FORZAR ACTUALIZACIÓN DE EVENTOS - SIEMPRE SOBREESCRIBIR 🔥
-  console.log("📅 Forzando carga de eventos de ejemplo...");
-  localStorage.setItem("eventos", JSON.stringify(eventosEjemplo));
+  
+  // Solo inicializar si no hay eventos en localStorage
+  if (!localStorage.getItem("eventos")) {
+    console.log("📅 Cargando eventos de ejemplo...");
+    localStorage.setItem("eventos", JSON.stringify(eventosEjemplo));
+  }
 
   if (!localStorage.getItem("usuarios")) {
     console.log("👥 Creando usuarios de ejemplo...");
@@ -236,8 +331,7 @@ function getEventoById(id) {
 
 function agregarEvento(evento) {
   const eventos = getEventos();
-  const nuevoId =
-    "evt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
+  const nuevoId = "evt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
   const nuevoEvento = { ...evento, id: nuevoId };
   eventos.push(nuevoEvento);
   guardarEventos(eventos);
@@ -261,15 +355,7 @@ function registrarUsuario(usuario) {
     return { exito: false, mensaje: "El correo ya está registrado" };
   }
 
-  const colores = [
-    "#2ecc71",
-    "#3498db",
-    "#e74c3c",
-    "#f39c12",
-    "#9b59b6",
-    "#1abc9c",
-    "#e67e22",
-  ];
+  const colores = ["#2ecc71", "#3498db", "#e74c3c", "#f39c12", "#9b59b6", "#1abc9c", "#e67e22"];
   const nuevoUsuario = {
     ...usuario,
     id: "user_" + Date.now(),
@@ -286,7 +372,7 @@ function registrarUsuario(usuario) {
       treintaMinutos: false,
       unaHora: false,
     },
-    recordatorios: [], // Lista de IDs de eventos a recordar
+    recordatorios: [],
   };
 
   usuarios.push(nuevoUsuario);
@@ -299,9 +385,7 @@ function iniciarSesion(email, password) {
   console.log("🔐 IniciarSesion llamado con:", email, password);
   const usuarios = getUsuarios();
 
-  const usuario = usuarios.find(
-    (u) => u.email === email && u.password === password,
-  );
+  const usuario = usuarios.find((u) => u.email === email && u.password === password);
 
   if (!usuario) {
     console.log("❌ Usuario no encontrado");
@@ -323,7 +407,6 @@ function iniciarSesion(email, password) {
 
 function cerrarSesion() {
   localStorage.removeItem("usuarioActual");
-  // Eliminar el color primario personalizado al cerrar sesión
   localStorage.removeItem("colorPrimario");
 }
 
@@ -374,101 +457,101 @@ function desactivarCuenta(email, confirmText) {
 
   return {
     exito: true,
-    mensaje: `Cuenta desactivada. Tendrás 14 días para recuperarla.`,
+    mensaje: "Cuenta desactivada. Tendrás 14 días para recuperarla.",
   };
 }
 
-function getEventosFuturos() {
-  // Obtener fecha actual en UTC para evitar problemas de zona horaria
-  const ahora = new Date();
-  const hoyUTC = new Date(
-    Date.UTC(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()),
-  );
-  const hoyStr = `${hoyUTC.getUTCFullYear()}-${String(hoyUTC.getUTCMonth() + 1).padStart(2, "0")}-${String(hoyUTC.getUTCDate()).padStart(2, "0")}`;
+// 🔥 OBTENER SOLO EVENTOS ACTIVOS (NO EXPIRADOS)
+function getEventosActivos() {
+  const eventos = getEventos();
+  return eventos.filter(eventoEstaActivo);
+}
 
-  return getEventos()
-    .filter((e) => e.fechaInicio >= hoyStr)
+function getEventosFuturos() {
+  const hoyStr = getFechaActual();
+  return getEventosActivos()
+    .filter((e) => e.fechaFin >= hoyStr)
+    .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
+}
+
+function getEventosSemana() {
+  const hoy = new Date();
+  const hoyStr = getFechaActual();
+  const dentroDe7Dias = new Date(hoy);
+  dentroDe7Dias.setDate(hoy.getDate() + 7);
+  const dentroDe7DiasStr = `${dentroDe7Dias.getFullYear()}-${String(dentroDe7Dias.getMonth() + 1).padStart(2, '0')}-${String(dentroDe7Dias.getDate()).padStart(2, '0')}`;
+  
+  return getEventosActivos()
+    .filter((e) => e.fechaInicio <= dentroDe7DiasStr && e.fechaFin >= hoyStr)
     .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
 }
 
 function getCategoriasConEventos() {
   const categorias = new Set();
-  getEventos().forEach((e) => categorias.add(e.categoria));
+  getEventosActivos().forEach((e) => categorias.add(e.categoria));
   return Array.from(categorias).sort();
 }
 
 function buscarEventos(termino) {
-  if (!termino || termino.trim() === "") return getEventos();
+  if (!termino || termino.trim() === "") return getEventosActivos();
   const t = termino.toLowerCase();
-  return getEventos().filter(
+  return getEventosActivos().filter(
     (e) =>
       e.nombre.toLowerCase().includes(t) ||
       e.categoria.toLowerCase().includes(t) ||
-      (e.ubicacion && e.ubicacion.toLowerCase().includes(t)),
+      (e.ubicacion && e.ubicacion.toLowerCase().includes(t))
   );
 }
 
+// 🔥 ELIMINAR EVENTOS EXPIRADOS (después de 24 horas) Y LIMPIAR RECORDATORIOS
 function limpiarEventosExpirados() {
   const eventos = getEventos();
-  const ahora = new Date();
-  let eventosModificados = false;
-
-  const eventosFiltrados = eventos.filter((evento) => {
-    let fechaExpiracion;
-
-    if (evento.fechaFin && evento.fechaFin !== evento.fechaInicio) {
-      fechaExpiracion = new Date(evento.fechaFin);
-      if (evento.horaFin) {
-        const [horas, minutos] = evento.horaFin.split(":");
-        fechaExpiracion.setHours(parseInt(horas) + 8, parseInt(minutos));
-      } else {
-        fechaExpiracion.setHours(23, 59, 59);
+  const eventosAEliminar = eventos.filter(eventoDebeSerEliminado);
+  const eventosActivos = eventos.filter(e => !eventoDebeSerEliminado(e));
+  
+  if (eventosAEliminar.length > 0) {
+    console.log(`🧹 Eliminando ${eventosAEliminar.length} eventos expirados permanentemente`);
+    
+    // Limpiar recordatorios de usuarios que tenían estos eventos
+    const usuarios = getUsuarios();
+    let usuariosModificados = false;
+    
+    usuarios.forEach(usuario => {
+      let cambios = false;
+      eventosAEliminar.forEach(evento => {
+        const index = usuario.recordatorios.indexOf(evento.id);
+        if (index !== -1) {
+          usuario.recordatorios.splice(index, 1);
+          cambios = true;
+        }
+      });
+      if (cambios) {
+        usuariosModificados = true;
+        // Actualizar sesión actual si es este usuario
+        const usuarioActual = getUsuarioActual();
+        if (usuarioActual && usuarioActual.id === usuario.id) {
+          usuarioActual.recordatorios = usuario.recordatorios;
+          localStorage.setItem("usuarioActual", JSON.stringify(usuarioActual));
+        }
       }
-    } else {
-      fechaExpiracion = new Date(evento.fechaInicio);
-      if (evento.horaFin) {
-        const [horas, minutos] = evento.horaFin.split(":");
-        fechaExpiracion.setHours(parseInt(horas) + 8, parseInt(minutos));
-      } else if (evento.horaInicio) {
-        const [horas, minutos] = evento.horaInicio.split(":");
-        fechaExpiracion.setHours(parseInt(horas) + 12, parseInt(minutos));
-      } else {
-        fechaExpiracion.setHours(23, 59, 59);
-      }
+    });
+    
+    if (usuariosModificados) {
+      guardarUsuarios(usuarios);
     }
-
-    if (ahora > fechaExpiracion) {
-      eventosModificados = true;
-      return false;
-    }
-    return true;
-  });
-
-  if (eventosModificados) {
-    guardarEventos(eventosFiltrados);
+    
+    guardarEventos(eventosActivos);
   }
 }
 
+// Ejecutar limpieza cada hora
 limpiarEventosExpirados();
 setInterval(limpiarEventosExpirados, 60 * 60 * 1000);
 
 function formatFechaShort(fechaStr) {
   if (!fechaStr) return "";
   const [year, month, day] = fechaStr.split("-");
-  const meses = [
-    "ene",
-    "feb",
-    "mar",
-    "abr",
-    "may",
-    "jun",
-    "jul",
-    "ago",
-    "sep",
-    "oct",
-    "nov",
-    "dic",
-  ];
+  const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   return `${parseInt(day)} ${meses[parseInt(month) - 1]}`;
 }
 
@@ -478,43 +561,42 @@ function formatFechaDDMMYYYY(fechaStr) {
   return `${day}/${month}/${year}`;
 }
 
-function testFormat(fechaStr) {
-  const [year, month, day] = fechaStr.split("-");
-  console.log("year:", year, "month:", month, "day:", day);
-  return `${day}/${month}/${year}`;
+// 🔥 Formatear rango de fecha y hora para mostrar
+function formatRangoEvento(evento) {
+  const fechaInicioFormateada = formatFechaDDMMYYYY(evento.fechaInicio);
+  let textoFecha = fechaInicioFormateada;
+  let textoHoras = evento.horaInicio ? evento.horaInicio.substring(0,5) : '';
+  
+  // Si es un rango de fechas (más de un día)
+  if (evento.fechaFin && evento.fechaFin !== evento.fechaInicio) {
+    const fechaFinFormateada = formatFechaDDMMYYYY(evento.fechaFin);
+    textoFecha = `${fechaInicioFormateada} - ${fechaFinFormateada}`;
+    
+    // Si tiene horas de inicio y fin
+    if (evento.horaInicio && evento.horaFin) {
+      textoHoras = `${evento.horaInicio.substring(0,5)} - ${evento.horaFin.substring(0,5)}`;
+    } else if (evento.horaInicio) {
+      textoHoras = evento.horaInicio.substring(0,5);
+    }
+  } else {
+    // Mismo día, mostrar horas si están disponibles
+    if (evento.horaInicio && evento.horaFin) {
+      textoHoras = `${evento.horaInicio.substring(0,5)} - ${evento.horaFin.substring(0,5)}`;
+    } else if (evento.horaInicio) {
+      textoHoras = evento.horaInicio.substring(0,5);
+    }
+  }
+  
+  return { fecha: textoFecha, hora: textoHoras };
 }
 
 function formatFechaCompleta(fechaStr) {
   if (!fechaStr) return "";
   const [year, month, day] = fechaStr.split("-");
-  const dias = [
-    "domingo",
-    "lunes",
-    "martes",
-    "miércoles",
-    "jueves",
-    "viernes",
-    "sábado",
-  ];
-  const meses = [
-    "enero",
-    "febrero",
-    "marzo",
-    "abril",
-    "mayo",
-    "junio",
-    "julio",
-    "agosto",
-    "septiembre",
-    "octubre",
-    "noviembre",
-    "diciembre",
-  ];
-  const fechaUTC = new Date(
-    Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)),
-  );
+  const dias = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const fechaUTC = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
   const diaSemana = dias[fechaUTC.getUTCDay()];
-
   return `${diaSemana}, ${parseInt(day)} de ${meses[parseInt(month) - 1]} de ${year}`;
 }
 
@@ -541,7 +623,7 @@ function getEtiquetaAptoMenores(aptoMenores) {
   if (aptoMenores === true) {
     return { texto: "Todas las edades", clase: "badge-menores-si" };
   } else {
-    return { texto: "Solo Adultos", clase: "badge-menores-no" };
+    return { texto: "Solo adultos", clase: "badge-menores-no" };
   }
 }
 
@@ -562,11 +644,7 @@ function actualizarEvento(id, datosActualizados) {
     return false;
   }
 
-  eventos[index] = {
-    ...eventos[index],
-    ...datosActualizados,
-    id: eventos[index].id,
-  };
+  eventos[index] = { ...eventos[index], ...datosActualizados, id: eventos[index].id };
   guardarEventos(eventos);
   console.log("✅ Evento actualizado:", eventos[index].nombre);
   return true;
@@ -584,6 +662,24 @@ function eliminarEvento(id) {
   const eventoEliminado = eventos[index];
   eventos.splice(index, 1);
   guardarEventos(eventos);
+  
+  // Limpiar recordatorios que tenían este evento
+  const usuarios = getUsuarios();
+  let usuariosModificados = false;
+  usuarios.forEach(usuario => {
+    const idx = usuario.recordatorios.indexOf(id);
+    if (idx !== -1) {
+      usuario.recordatorios.splice(idx, 1);
+      usuariosModificados = true;
+      if (getUsuarioActual()?.id === usuario.id) {
+        const usuarioActual = getUsuarioActual();
+        usuarioActual.recordatorios = usuario.recordatorios;
+        localStorage.setItem("usuarioActual", JSON.stringify(usuarioActual));
+      }
+    }
+  });
+  if (usuariosModificados) guardarUsuarios(usuarios);
+  
   console.log("🗑️ Evento eliminado:", eventoEliminado.nombre);
   return true;
 }
@@ -594,7 +690,6 @@ function puedeEditarEvento(usuario, evento) {
   return evento.creadoPor === usuario.id;
 }
 
-// Función para agregar un evento a los recordatorios del usuario
 function agregarRecordatorio(usuarioId, eventoId) {
   const usuarios = getUsuarios();
   const usuario = usuarios.find((u) => u.id === usuarioId);
@@ -602,7 +697,6 @@ function agregarRecordatorio(usuarioId, eventoId) {
     usuario.recordatorios.push(eventoId);
     guardarUsuarios(usuarios);
 
-    // Actualizar la sesión actual si es el mismo usuario
     const usuarioActual = getUsuarioActual();
     if (usuarioActual && usuarioActual.id === usuarioId) {
       usuarioActual.recordatorios = usuario.recordatorios;
@@ -613,7 +707,6 @@ function agregarRecordatorio(usuarioId, eventoId) {
   return false;
 }
 
-// Función para eliminar un evento de los recordatorios
 function eliminarRecordatorio(usuarioId, eventoId) {
   const usuarios = getUsuarios();
   const usuario = usuarios.find((u) => u.id === usuarioId);
@@ -623,7 +716,6 @@ function eliminarRecordatorio(usuarioId, eventoId) {
       usuario.recordatorios.splice(index, 1);
       guardarUsuarios(usuarios);
 
-      // Actualizar la sesión actual
       const usuarioActual = getUsuarioActual();
       if (usuarioActual && usuarioActual.id === usuarioId) {
         usuarioActual.recordatorios = usuario.recordatorios;
@@ -635,12 +727,26 @@ function eliminarRecordatorio(usuarioId, eventoId) {
   return false;
 }
 
-// Función para verificar si un evento está en los recordatorios del usuario
 function esRecordatorio(usuarioId, eventoId) {
   if (!usuarioId) return false;
   const usuarios = getUsuarios();
   const usuario = usuarios.find((u) => u.id === usuarioId);
   return usuario ? usuario.recordatorios.includes(eventoId) : false;
+}
+
+function getEventosGuardados() {
+  const usuario = getUsuarioActual();
+  if (!usuario || !usuario.recordatorios) return [];
+  const eventos = getEventosActivos();
+  return usuario.recordatorios.map(id => eventos.find(e => e.id === id)).filter(e => e);
+}
+
+// 🔥 Función para obtener eventos en un rango de fechas
+function getEventosEnRango(fechaInicio, fechaFin) {
+  if (!fechaInicio || !fechaFin) return [];
+  return getEventosActivos().filter(evento => 
+    evento.fechaInicio <= fechaFin && evento.fechaFin >= fechaInicio
+  );
 }
 
 inicializarDatos();

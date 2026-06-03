@@ -364,9 +364,18 @@
                 </div>
                 <div class="footer-col-3">
                     <h3>CONTACTO</h3>
-                    <div class="contact-item"><strong>Tel:</strong> <a href="tel:+5351234567">+53 5123 4567</a></div>
-                    <div class="contact-item"><strong>Co:</strong> <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a></div>
-                    <div class="contact-item"><strong>Ub:</strong> <span>La Habana, Cuba</span></div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/phone.png" alt="tel" class="contact-icon">
+                        <a href="tel:+5351234567">+53 5123 4567</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/envelope.png" alt="email" class="contact-icon">
+                        <a href="mailto:contacto@culturahabana.com">contacto@culturahabana.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <img src="resources/icons_dark/location.png" alt="ubicación" class="contact-icon">
+                        <span>La Habana, Cuba</span>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -444,10 +453,11 @@
             const fechaInicio = document.getElementById('fecha-inicio')?.value;
             const fechaFin = document.getElementById('fecha-fin')?.value;
             
-            if (fechaInicio) {
-                eventos = eventos.filter(e => e.fechaInicio >= fechaInicio);
-            }
-            if (fechaFin) {
+            if (fechaInicio && fechaFin) {
+                eventos = eventos.filter(e => e.fechaInicio <= fechaFin && e.fechaFin >= fechaInicio);
+            } else if (fechaInicio) {
+                eventos = eventos.filter(e => e.fechaFin >= fechaInicio);
+            } else if (fechaFin) {
                 eventos = eventos.filter(e => e.fechaInicio <= fechaFin);
             }
             
@@ -469,18 +479,15 @@
             }
             
             container.innerHTML = eventos.map(evento => {
-                const menores = evento.aptoMenores ? 
-                    { clase: 'badge-menores-si', texto: '👶 Apto menores' } : 
-                    { clase: 'badge-menores-no', texto: '👤 Adultos' };
-                const aire = evento.aireLibre ? 
-                    { clase: 'badge-aire-si', texto: '🌳 Aire libre' } : 
-                    { clase: 'badge-aire-no', texto: '🏠 Interior' };
+                const menores = getEtiquetaAptoMenores(evento.aptoMenores);
+                const aire = getEtiquetaAireLibre(evento.aireLibre);
+                const rango = formatRangoEvento(evento);
                 return `
-                    <div class="evento-resultado-item" onclick="window.location.href='detallesEventoLanding.html?id=${evento.id}'">
+                    <div class="evento-resultado-item" onclick="window.location.href='detallesEvento.html?id=${evento.id}'">
                         <img class="evento-resultado-img" src="${evento.poster}" onerror="this.src='https://picsum.photos/id/100/60/60'">
                         <div class="evento-resultado-info">
                             <h4>${evento.nombre}</h4>
-                            <p class="fecha">${formatFechaShort(evento.fechaInicio)} ${evento.horaInicio ? '· ' + evento.horaInicio.substring(0,5) : ''}</p>
+                            <p class="fecha">${rango.fecha} ${rango.hora ? '· ' + rango.hora : ''}</p>
                             <span class="categoria-badge">${evento.categoria}</span>
                             <span class="${menores.clase}">${menores.texto}</span>
                             <span class="${aire.clase}">${aire.texto}</span>
