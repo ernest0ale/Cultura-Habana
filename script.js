@@ -1,5 +1,6 @@
-﻿﻿// ==================== VARIABLES GLOBALES ====================
+﻿﻿﻿﻿﻿﻿// ==================== VARIABLES GLOBALES ====================
 let isDarkMode = localStorage.getItem('darkMode') === 'true';
+let mobileSearchOverlay = null;
 
 // Asegurar que esAdministrador esté disponible
 if (typeof esAdministrador === 'undefined') {
@@ -15,20 +16,6 @@ function isMobile() {
     return window.innerWidth <= 700;
 }
 
-// ==================== FUNCIONES COMPLEMENTARIAS ====================
-/*function formatFechaShort(fechaStr) {
-    const fecha = new Date(fechaStr);
-    return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-}
-
-function formatFechaDDMMYYYY(fechaStr) {
-    const fecha = new Date(fechaStr);
-    const dia = fecha.getDate().toString().padStart(2, '0');
-    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
-    const anio = fecha.getFullYear();
-    return `${dia}/${mes}/${anio}`;
-}*/
-
 function getIconoCategoria(categoria) {
     const iconos = {
         'Conciertos': '🎵', 'Teatro': '🎭', 'Cine': '🎬', 'Exposiciones': '🖼️',
@@ -43,7 +30,7 @@ function getPreferenciasUsuario() {
     return usuario?.preferencias || [];
 }
 
-// ==================== MENÚ LATERAL UNIFICADO (VERSIÓN FUNCIONAL) ====================
+// ==================== MENÚ LATERAL UNIFICADO ====================
 function initSidebar() {
     const sidebar = document.getElementById('sidebar');
     const menuToggleBtn = document.getElementById('menuToggleBtn');
@@ -465,7 +452,6 @@ function applyTheme() {
     const notifDark = document.getElementById('notifIconDark');
     const menuIcon = document.getElementById('menuIcon');
     
-    // Iconos de búsqueda móvil
     const mobileSearchLight = document.getElementById('mobileSearchIconLight');
     const mobileSearchDark = document.getElementById('mobileSearchIconDark');
     
@@ -479,7 +465,6 @@ function applyTheme() {
         if (notifDark) notifDark.style.display = 'inline-block';
         if (menuIcon) menuIcon.src = 'resources/icons_dark/menu.png';
         
-        // Iconos búsqueda móvil
         if (mobileSearchLight) mobileSearchLight.style.display = 'none';
         if (mobileSearchDark) mobileSearchDark.style.display = 'inline-block';
     } else {
@@ -492,15 +477,59 @@ function applyTheme() {
         if (notifDark) notifDark.style.display = 'none';
         if (menuIcon) menuIcon.src = 'resources/icons_light/menu.png';
         
-        // Iconos búsqueda móvil
         if (mobileSearchLight) mobileSearchLight.style.display = 'inline-block';
         if (mobileSearchDark) mobileSearchDark.style.display = 'none';
     }
     
-    // Actualizar icono de cerrar del buscador móvil si está abierto
     const closeIcon = document.getElementById('mobileSearchCloseIcon');
     if (closeIcon && mobileSearchOverlay && mobileSearchOverlay.classList.contains('active')) {
         closeIcon.src = isDarkMode ? 'resources/icons_dark/icon_x.png' : 'resources/icons_light/icon_x.png';
+    }
+    
+    // Actualizar iconos del submenú del avatar si existe
+    if (typeof actualizarIconosSubmenuAvatar === 'function') {
+        actualizarIconosSubmenuAvatar();
+    }
+    
+    // Actualizar botón de login
+    if (typeof actualizarBotonLoginEstilo === 'function') {
+        actualizarBotonLoginEstilo();
+    }
+    
+    // Actualizar el hover del botón si ya existe
+    const avatarDiv = document.getElementById('avatarUsuario');
+    if (avatarDiv && !getUsuarioActual()) {
+        const isDark = document.body.classList.contains('dark-mode');
+        if (isDark) {
+            avatarDiv.style.color = 'white';
+            avatarDiv.style.borderColor = 'white';
+        } else {
+            avatarDiv.style.color = 'var(--color-primary)';
+            avatarDiv.style.borderColor = 'var(--color-primary)';
+        }
+    }
+}
+
+// ==================== ACTUALIZAR BOTÓN LOGIN ====================
+function actualizarBotonLoginEstilo() {
+    const avatarDiv = document.getElementById('avatarUsuario');
+    if (!avatarDiv) return;
+    
+    const usuario = getUsuarioActual();
+    if (usuario) return; // Solo para usuarios no logueados
+    
+    const isDark = document.body.classList.contains('dark-mode');
+    
+    // Tema claro: borde y texto color primario
+    // Tema oscuro: borde y texto blanco
+    if (isDark) {
+        avatarDiv.style.color = 'white';
+        avatarDiv.style.borderColor = 'white';
+        avatarDiv.style.backgroundColor = 'transparent';
+    } else {
+        avatarDiv.style.color = 'var(--color-primary)';
+        avatarDiv.style.borderColor = 'var(--color-primary)';
+        avatarDiv.style.backgroundColor = 'transparent';
     }
 }
 
@@ -560,14 +589,17 @@ function initAvatar() {
             overflow: hidden;
             display: none;
         `;
+        const isDark = document.body.classList.contains('dark-mode');
+        const iconPath = isDark ? 'resources/icons_dark/' : 'resources/icons_light/';
+        
         avatarSubmenu.innerHTML = `
             <a href="perfil.html" class="avatar-submenu-item">
-                <img class="avatar-submenu-icon" src="resources/icons_light/cog.png" alt="config" style="width: 16px; height: 16px;">
+                <img class="avatar-submenu-icon" src="${iconPath}cog.png" alt="config" style="width: 16px; height: 16px;">
                 <span>Configuración</span>
             </a>
             <div class="avatar-submenu-divider"></div>
             <a href="#" id="logoutSubmenuBtn" class="avatar-submenu-item">
-                <img class="avatar-submenu-icon" src="resources/icons_light/arrow-out-right-square-half.png" alt="salir" style="width: 16px; height: 16px;">
+                <img class="avatar-submenu-icon" src="${iconPath}arrow-out-right-square-half.png" alt="salir" style="width: 16px; height: 16px;">
                 <span>Cerrar sesión</span>
             </a>
         `;
@@ -627,17 +659,62 @@ function initAvatar() {
             }
         } else {
             avatarDiv.innerHTML = 'Iniciar sesión';
-            avatarDiv.style.backgroundColor = 'transparent';
-            avatarDiv.style.color = 'var(--color-primary)';
-            avatarDiv.style.border = '2px solid var(--color-primary)';
             avatarDiv.style.borderRadius = '30px';
-            avatarDiv.style.fontSize = '0.8rem';
+            avatarDiv.style.fontSize = '0.75rem';
             avatarDiv.style.fontWeight = '600';
             avatarDiv.style.width = 'auto';
             avatarDiv.style.height = 'auto';
             avatarDiv.style.padding = '0.4rem 1rem';
             avatarDiv.style.display = 'inline-flex';
+            avatarDiv.style.alignItems = 'center';
+            avatarDiv.style.justifyContent = 'center';
+            avatarDiv.style.cursor = 'pointer';
+            avatarDiv.style.transition = 'all 0.3s ease';
             avatarDiv.title = 'Iniciar sesión';
+            
+            const isDark = document.body.classList.contains('dark-mode');
+            if (isDark) {
+                avatarDiv.style.color = 'white';
+                avatarDiv.style.border = '2px solid white';
+                avatarDiv.style.backgroundColor = 'transparent';
+            } else {
+                avatarDiv.style.color = 'var(--color-primary)';
+                avatarDiv.style.border = '2px solid var(--color-primary)';
+                avatarDiv.style.backgroundColor = 'transparent';
+            }
+            
+            // Eliminar event listeners anteriores para evitar duplicados
+            const oldMouseEnter = avatarDiv.onmouseenter;
+            const oldMouseLeave = avatarDiv.onmouseleave;
+            
+            avatarDiv.addEventListener('mouseenter', () => {
+                const isDarkHover = document.body.classList.contains('dark-mode');
+                if (isDarkHover) {
+                    // Tema oscuro: hover con fondo blanco y texto color primario
+                    avatarDiv.style.backgroundColor = 'white';
+                    avatarDiv.style.color = 'var(--color-primary)';
+                    avatarDiv.style.borderColor = 'white';
+                } else {
+                    // Tema claro: hover con fondo primario y texto blanco
+                    avatarDiv.style.backgroundColor = 'var(--color-primary)';
+                    avatarDiv.style.color = 'white';
+                    avatarDiv.style.borderColor = 'var(--color-primary)';
+                }
+            });
+            
+            avatarDiv.addEventListener('mouseleave', () => {
+                const isDarkLeave = document.body.classList.contains('dark-mode');
+                if (isDarkLeave) {
+                    avatarDiv.style.backgroundColor = 'transparent';
+                    avatarDiv.style.color = 'white';
+                    avatarDiv.style.borderColor = 'white';
+                } else {
+                    avatarDiv.style.backgroundColor = 'transparent';
+                    avatarDiv.style.color = 'var(--color-primary)';
+                    avatarDiv.style.borderColor = 'var(--color-primary)';
+                }
+            });
+            
             if (menuPromocion) menuPromocion.style.display = 'none';
         }
     }
@@ -689,6 +766,207 @@ function initAvatar() {
     updateAvatar();
 }
 
+// ==================== AVATAR CON SUBMENÚ FLOTANTE (UNIFICADO) ====================
+function initAvatarUnificado() {
+    const avatarDiv = document.getElementById('avatarUsuario');
+    const menuPromocion = document.getElementById('menuPromocion');
+    
+    if (!avatarDiv) return;
+    
+    let avatarSubmenu = null;
+    
+    function crearSubmenuAvatar() {
+        if (avatarSubmenu) return;
+        
+        avatarSubmenu = document.createElement('div');
+        avatarSubmenu.className = 'avatar-submenu';
+        avatarSubmenu.style.cssText = `
+            position: fixed;
+            background: var(--color-surface);
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px var(--shadow-border);
+            border: 1px solid var(--color-border);
+            z-index: 10001;
+            min-width: 160px;
+            overflow: hidden;
+            display: none;
+        `;
+        const isDark = document.body.classList.contains('dark-mode');
+        const iconPath = isDark ? 'resources/icons_dark/' : 'resources/icons_light/';
+        
+        avatarSubmenu.innerHTML = `
+            <a href="perfil.html" class="avatar-submenu-item">
+                <img class="avatar-submenu-icon" src="${iconPath}cog.png" alt="config" style="width: 16px; height: 16px;">
+                <span>Configuración</span>
+            </a>
+            <div class="avatar-submenu-divider"></div>
+            <a href="#" id="logoutSubmenuBtn" class="avatar-submenu-item">
+                <img class="avatar-submenu-icon" src="${iconPath}arrow-out-right-square-half.png" alt="salir" style="width: 16px; height: 16px;">
+                <span>Cerrar sesión</span>
+            </a>
+        `;
+        document.body.appendChild(avatarSubmenu);
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            .avatar-submenu-item {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.6rem 1rem;
+                color: var(--color-text-primary);
+                text-decoration: none;
+                font-size: 0.8rem;
+                transition: background 0.2s ease;
+            }
+            .avatar-submenu-item:hover {
+                background: var(--color-bg);
+            }
+            .avatar-submenu-divider {
+                height: 1px;
+                background: var(--color-border);
+                margin: 0.2rem 0;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.getElementById('logoutSubmenuBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            cerrarSesion();
+            window.location.reload();
+        });
+    }
+    
+    function updateAvatar() {
+        const usuario = getUsuarioActual();
+        
+        if (usuario && usuario.nombre) {
+            avatarDiv.innerHTML = usuario.nombre.charAt(0).toUpperCase();
+            avatarDiv.style.backgroundColor = usuario.avatarColor || '#2ecc71';
+            avatarDiv.style.color = 'white';
+            avatarDiv.style.border = 'none';
+            avatarDiv.style.fontSize = '1rem';
+            avatarDiv.style.fontWeight = '600';
+            avatarDiv.style.width = '36px';
+            avatarDiv.style.height = '36px';
+            avatarDiv.style.borderRadius = '50%';
+            avatarDiv.style.display = 'flex';
+            avatarDiv.style.alignItems = 'center';
+            avatarDiv.style.justifyContent = 'center';
+            avatarDiv.style.cursor = 'pointer';
+            avatarDiv.title = usuario.nombre;
+            
+            if (menuPromocion) {
+                menuPromocion.style.display = esAdministrador(usuario) ? 'block' : 'none';
+            }
+        } else {
+            avatarDiv.innerHTML = 'Iniciar sesión';
+            avatarDiv.style.borderRadius = '30px';
+            avatarDiv.style.fontSize = '0.75rem';
+            avatarDiv.style.fontWeight = '600';
+            avatarDiv.style.width = 'auto';
+            avatarDiv.style.height = 'auto';
+            avatarDiv.style.padding = '0.4rem 1rem';
+            avatarDiv.style.display = 'inline-flex';
+            avatarDiv.style.alignItems = 'center';
+            avatarDiv.style.justifyContent = 'center';
+            avatarDiv.style.cursor = 'pointer';
+            avatarDiv.style.transition = 'all 0.3s ease';
+            avatarDiv.title = 'Iniciar sesión';
+            
+            const isDark = document.body.classList.contains('dark-mode');
+            if (isDark) {
+                avatarDiv.style.color = 'white';
+                avatarDiv.style.border = '2px solid white';
+                avatarDiv.style.backgroundColor = 'transparent';
+            } else {
+                avatarDiv.style.color = 'var(--color-primary)';
+                avatarDiv.style.border = '2px solid var(--color-primary)';
+                avatarDiv.style.backgroundColor = 'transparent';
+            }
+            
+            // Eliminar event listeners anteriores para evitar duplicados
+            const oldMouseEnter = avatarDiv.onmouseenter;
+            const oldMouseLeave = avatarDiv.onmouseleave;
+            
+            avatarDiv.addEventListener('mouseenter', () => {
+                const isDarkHover = document.body.classList.contains('dark-mode');
+                if (isDarkHover) {
+                    // Tema oscuro: hover con fondo blanco y texto color primario
+                    avatarDiv.style.backgroundColor = 'white';
+                    avatarDiv.style.color = 'var(--color-primary)';
+                    avatarDiv.style.borderColor = 'white';
+                } else {
+                    // Tema claro: hover con fondo primario y texto blanco
+                    avatarDiv.style.backgroundColor = 'var(--color-primary)';
+                    avatarDiv.style.color = 'white';
+                    avatarDiv.style.borderColor = 'var(--color-primary)';
+                }
+            });
+            
+            avatarDiv.addEventListener('mouseleave', () => {
+                const isDarkLeave = document.body.classList.contains('dark-mode');
+                if (isDarkLeave) {
+                    avatarDiv.style.backgroundColor = 'transparent';
+                    avatarDiv.style.color = 'white';
+                    avatarDiv.style.borderColor = 'white';
+                } else {
+                    avatarDiv.style.backgroundColor = 'transparent';
+                    avatarDiv.style.color = 'var(--color-primary)';
+                    avatarDiv.style.borderColor = 'var(--color-primary)';
+                }
+            });
+            
+            if (menuPromocion) menuPromocion.style.display = 'none';
+        }
+    }
+    
+    function showSubmenu(e) {
+        e.stopPropagation();
+        
+        const usuario = getUsuarioActual();
+        if (!usuario) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        crearSubmenuAvatar();
+        
+        const rect = avatarDiv.getBoundingClientRect();
+        avatarSubmenu.style.display = 'block';
+        avatarSubmenu.style.left = `${rect.left - 160}px`;
+        avatarSubmenu.style.top = `${rect.bottom + 5}px`;
+        
+        const closeHandler = (event) => {
+            if (!avatarDiv.contains(event.target) && !avatarSubmenu.contains(event.target)) {
+                avatarSubmenu.style.display = 'none';
+                document.removeEventListener('click', closeHandler);
+                document.removeEventListener('touchstart', closeHandler);
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', closeHandler);
+            document.addEventListener('touchstart', closeHandler);
+        }, 10);
+    }
+    
+    avatarDiv.addEventListener('click', showSubmenu);
+    updateAvatar();
+}
+
+function actualizarIconosSubmenuAvatar() {
+    const isDark = document.body.classList.contains('dark-mode');
+    const icons = document.querySelectorAll('.avatar-submenu-icon');
+    icons.forEach(icon => {
+        if (icon.src && icon.src.includes('cog.png')) {
+            icon.src = isDark ? 'resources/icons_dark/cog.png' : 'resources/icons_light/cog.png';
+        } else if (icon.src && icon.src.includes('arrow-out-right-square-half.png')) {
+            icon.src = isDark ? 'resources/icons_dark/arrow-out-right-square-half.png' : 'resources/icons_light/arrow-out-right-square-half.png';
+        }
+    });
+}
+
 // ==================== BÚSQUEDA GLOBAL ====================
 function initSearch() {
     const buscador = document.getElementById('buscador-global');
@@ -714,12 +992,10 @@ function initSearch() {
 
 // ==================== NOTIFICACIONES ====================
 function initNotifications() {
-    // Verificar que la función existe
     if (typeof initNotificationsSystem === 'function') {
         initNotificationsSystem();
     } else {
         console.warn('initNotificationsSystem no está definida, recargando...');
-        // Recargar el script de notificaciones dinámicamente
         const script = document.createElement('script');
         script.src = 'notifications.js';
         script.onload = () => {
@@ -748,9 +1024,7 @@ function setupCategoriaLinks() {
     }
 }
 
-// ==================== BÚSQUEDA MOBILE (ESTILO YOUTUBE CON ICONOS DINÁMICOS) ====================
-let mobileSearchOverlay = null;
-
+// ==================== BÚSQUEDA MOBILE ====================
 function initMobileSearch() {
     if (document.querySelector('.mobile-search-overlay')) return;
     
@@ -775,8 +1049,6 @@ function initMobileSearch() {
     const searchInput = document.getElementById('mobile-search-input');
     const searchSubmit = document.getElementById('mobile-search-submit');
     const searchClose = document.getElementById('mobile-search-close');
-    const mobileSearchBtnIcon = document.getElementById('mobileSearchBtnIcon');
-    const mobileSearchCloseIcon = document.getElementById('mobileSearchCloseIcon');
     
     function realizarBusquedaMobile() {
         const termino = searchInput.value.trim();
@@ -799,11 +1071,13 @@ function initMobileSearch() {
     
     function updateMobileSearchIcons() {
         const isDark = document.body.classList.contains('dark-mode');
-        if (mobileSearchBtnIcon) {
-            mobileSearchBtnIcon.src = 'resources/icons_dark/search.png';
+        const btnIcon = document.getElementById('mobileSearchBtnIcon');
+        if (btnIcon) {
+            btnIcon.src = 'resources/icons_dark/search.png';
         }
-        if (mobileSearchCloseIcon) {
-            mobileSearchCloseIcon.src = isDark ? 'resources/icons_dark/icon_x.png' : 'resources/icons_light/icon_x.png';
+        const closeIcon = document.getElementById('mobileSearchCloseIcon');
+        if (closeIcon) {
+            closeIcon.src = isDark ? 'resources/icons_dark/icon_x.png' : 'resources/icons_light/icon_x.png';
         }
     }
     
@@ -887,165 +1161,23 @@ function actualizarNotificacionesPorSesion() {
     }
 }
 
-// ==================== AVATAR CON SUBMENÚ FLOTANTE ====================
-function initAvatarUnificado() {
-    const avatarDiv = document.getElementById('avatarUsuario');
-    const menuPromocion = document.getElementById('menuPromocion');
-    
-    if (!avatarDiv) return;
-    
-    let avatarSubmenu = null;
-    
-    function crearSubmenuAvatar() {
-        if (avatarSubmenu) return;
-        
-        avatarSubmenu = document.createElement('div');
-        avatarSubmenu.className = 'avatar-submenu';
-        avatarSubmenu.style.cssText = `
-            position: fixed;
-            background: var(--color-surface);
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 12px var(--shadow-border);
-            border: 1px solid var(--color-border);
-            z-index: 10001;
-            min-width: 160px;
-            overflow: hidden;
-            display: none;
-        `;
-        avatarSubmenu.innerHTML = `
-            <a href="perfil.html" class="avatar-submenu-item">
-                <span>Configuración</span>
-            </a>
-            <div class="avatar-submenu-divider"></div>
-            <a href="#" id="logoutSubmenuBtn" class="avatar-submenu-item">
-                <span>Cerrar sesión</span>
-            </a>
-        `;
-        document.body.appendChild(avatarSubmenu);
-        
-        const style = document.createElement('style');
-        style.textContent = `
-            .avatar-submenu-item {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 0.6rem 1rem;
-                color: var(--color-text-primary);
-                text-decoration: none;
-                font-size: 0.8rem;
-                transition: background 0.2s ease;
-            }
-            .avatar-submenu-item:hover {
-                background: var(--color-bg);
-            }
-            .avatar-submenu-divider {
-                height: 1px;
-                background: var(--color-border);
-                margin: 0.2rem 0;
-            }
-        `;
-        document.head.appendChild(style);
-        
-        document.getElementById('logoutSubmenuBtn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            cerrarSesion();
-            window.location.reload();
-        });
-    }
-    
-    function updateAvatar() {
-        const usuario = getUsuarioActual();
-        
-        if (usuario && usuario.nombre) {
-            avatarDiv.innerHTML = usuario.nombre.charAt(0).toUpperCase();
-            avatarDiv.style.backgroundColor = usuario.avatarColor || '#2ecc71';
-            avatarDiv.style.color = 'white';
-            avatarDiv.style.border = 'none';
-            avatarDiv.style.fontSize = '1rem';
-            avatarDiv.style.fontWeight = '600';
-            avatarDiv.style.width = '36px';
-            avatarDiv.style.height = '36px';
-            avatarDiv.style.borderRadius = '50%';
-            avatarDiv.style.display = 'flex';
-            avatarDiv.style.alignItems = 'center';
-            avatarDiv.style.justifyContent = 'center';
-            avatarDiv.style.cursor = 'pointer';
-            avatarDiv.title = usuario.nombre;
-            
-            if (menuPromocion) {
-                menuPromocion.style.display = esAdministrador(usuario) ? 'block' : 'none';
-            }
-        } else {
-            avatarDiv.innerHTML = 'Iniciar sesión';
-            avatarDiv.style.backgroundColor = 'transparent';
-            avatarDiv.style.color = 'var(--color-primary)';
-            avatarDiv.style.border = '2px solid var(--color-primary)';
-            avatarDiv.style.borderRadius = '30px';
-            avatarDiv.style.fontSize = '0.75rem';
-            avatarDiv.style.fontWeight = '600';
-            avatarDiv.style.width = 'auto';
-            avatarDiv.style.height = 'auto';
-            avatarDiv.style.padding = '0.4rem 1rem';
-            avatarDiv.style.display = 'inline-flex';
-            avatarDiv.title = 'Iniciar sesión';
-            if (menuPromocion) menuPromocion.style.display = 'none';
-        }
-    }
-    
-    function showSubmenu(e) {
-        e.stopPropagation();
-        
-        const usuario = getUsuarioActual();
-        if (!usuario) {
-            window.location.href = 'login.html';
-            return;
-        }
-        
-        crearSubmenuAvatar();
-        
-        const rect = avatarDiv.getBoundingClientRect();
-        avatarSubmenu.style.display = 'block';
-        avatarSubmenu.style.left = `${rect.left - 160}px`;
-        avatarSubmenu.style.top = `${rect.bottom + 5}px`;
-        
-        const closeHandler = (event) => {
-            if (!avatarDiv.contains(event.target) && !avatarSubmenu.contains(event.target)) {
-                avatarSubmenu.style.display = 'none';
-                document.removeEventListener('click', closeHandler);
-                document.removeEventListener('touchstart', closeHandler);
-            }
-        };
-        
-        setTimeout(() => {
-            document.addEventListener('click', closeHandler);
-            document.addEventListener('touchstart', closeHandler);
-        }, 10);
-    }
-    
-    avatarDiv.addEventListener('click', showSubmenu);
-    updateAvatar();
-}
-
 // ==================== INICIALIZACIÓN COMPLETA ====================
 document.addEventListener('DOMContentLoaded', () => {
-    // Aplicar tema y color PRIMERO
     applyTheme();
     aplicarColorPrimarioUsuario();
     
-    // Inicializar sidebar (DEBE SER ANTES que otras modificaciones del DOM)
     if (typeof initSidebar === 'function') {
         initSidebar();
     }
     
-    // Inicializar resto de componentes
     initMobileSearch();
     initAvatarUnificado();
     initSearch();
     initNotifications();
     setupCategoriaLinks();
     actualizarNotificacionesPorSesion();
+    actualizarBotonLoginEstilo();
     
-    // Theme toggle
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', () => {
@@ -1053,21 +1185,12 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('darkMode', isDarkMode);
             applyTheme();
             aplicarColorPrimarioUsuario();
+            actualizarBotonLoginEstilo();
         });
     }
 });
 
-/*function getEtiquetaAptoMenores(apto) {
-    if (apto === true) return { texto: 'Menores', clase: 'badge-menores-si' };
-    return { texto: 'Adultos', clase: 'badge-menores-no' };
-}
-
-function getEtiquetaAireLibre(aire) {
-    if (aire === true) return { texto: 'Al aire libre', clase: 'badge-aire-si' };
-    return { texto: 'Espacio cerrado', clase: 'badge-aire-no' };
-}*/
-
-// En script.js - Función para obtener eventos guardados
+// ==================== FUNCIONES ADICIONALES ====================
 function getEventosGuardados() {
     const usuario = getUsuarioActual();
     if (!usuario || !usuario.recordatorios) return [];
@@ -1077,10 +1200,8 @@ function getEventosGuardados() {
 
 // landing-common.js - Script común para todas las landing pages
 function initLandingPage(currentPage) {
-    // Verificar si ya hay sesión iniciada
     const usuario = getUsuarioActual();
     if (usuario) {
-        // Redirigir a la página correspondiente del sistema principal
         const redirectMap = {
             'index': 'inicio.html',
             'categoriasLanding': 'inicio.html',
@@ -1094,14 +1215,13 @@ function initLandingPage(currentPage) {
         return;
     }
     
-    // Configurar tema oscuro
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
-    if (isDarkMode) document.body.classList.add('dark-mode');
+    const isDarkModeStorage = localStorage.getItem('darkMode') === 'true';
+    if (isDarkModeStorage) document.body.classList.add('dark-mode');
     
     const themeBtn = document.getElementById('landingThemeBtn');
     const themeIcon = document.getElementById('landingThemeIcon');
     
-    function applyTheme() {
+    function applyThemeLanding() {
         if (document.body.classList.contains('dark-mode')) {
             document.body.classList.remove('dark-mode');
             themeIcon.src = 'resources/icons_light/moon.png';
@@ -1113,22 +1233,8 @@ function initLandingPage(currentPage) {
         }
     }
     
-    themeBtn?.addEventListener('click', applyTheme);
-    
-    // Configurar búsqueda móvil
+    themeBtn?.addEventListener('click', applyThemeLanding);
     initLandingMobileSearch();
-}
-
-function actualizarIconosSubmenuAvatar() {
-    const isDark = document.body.classList.contains('dark-mode');
-    const icons = document.querySelectorAll('.avatar-submenu-icon');
-    icons.forEach(icon => {
-        if (icon.src.includes('cog.png')) {
-            icon.src = isDark ? 'resources/icons_dark/cog.png' : 'resources/icons_light/cog.png';
-        } else if (icon.src.includes('arrow-out-right-square-half.png')) {
-            icon.src = isDark ? 'resources/icons_dark/arrow-out-right-square-half.png' : 'resources/icons_light/arrow-out-right-square-half.png';
-        }
-    });
 }
 
 function initLandingMobileSearch() {
