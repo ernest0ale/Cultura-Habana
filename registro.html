@@ -64,11 +64,15 @@
         .toggle-password {
             position: absolute;
             right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
             cursor: pointer;
-            font-size: 1.2rem;
-            color: var(--color-text-secondary);
             background: none;
             border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .phone-container {
             display: flex;
@@ -125,6 +129,14 @@
             margin-bottom: 1rem;
             text-align: center;
         }
+        .success-message {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
         
         /* Estilos para preferencias */
         .preferences-grid {
@@ -136,7 +148,6 @@
             overflow-y: auto;
             padding-right: 0.5rem;
         }
-
         .pref-card {
             background: var(--color-bg);
             border: 2px solid var(--color-border);
@@ -146,22 +157,11 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        .pref-card {
-            background: var(--color-bg);
-            border: 2px solid var(--color-border);
-            border-radius: 12px;
-            padding: 0.6rem 0.3rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
         .pref-card .pref-emoji {
             font-size: 1.5rem;
             display: block;
             margin-bottom: 0.2rem;
         }
-
         .pref-card .pref-name {
             font-size: 0.7rem;
             font-weight: 500;
@@ -174,31 +174,29 @@
             cursor: pointer;
             font-size: 0.8rem;
             margin-bottom: 1rem;
-        }
-
-        .pref-card {
-            background: var(--color-primary, rgb(2, 90, 138));
-            border: 2px solid var(--color-primary, rgb(2, 90, 138));
-            border-radius: 12px;
-            padding: 0.6rem 0.3rem;
-            text-align: center;
-            cursor: pointer;
             transition: all 0.3s ease;
+        }
+        .select-all-btn:hover {
+            background: var(--color-primary);
             color: white;
         }
-
-        /* Color cuando ESTÁ seleccionada (el usuario la quiere) */
-        .pref-card.selected {
-            background: var(--color-border);
+        /* Color cuando NO ESTÁ seleccionada */
+        .pref-card {
+            background: var(--color-bg);
             border-color: var(--color-border);
             color: var(--color-text-primary);
+        }
+        /* Color cuando ESTÁ seleccionada */
+        .pref-card.selected {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
         }
     </style>
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-card" id="registro-card">
-            
             
             <div id="message"></div>
             
@@ -235,11 +233,14 @@
                             </button>
                         </div>
                     </div>
-                    <div class="password-wrapper">
-                        <input type="password" id="confirm_password" required autocomplete="new-password">
-                        <button type="button" class="toggle-password" onclick="togglePassword('confirm_password')">
-                            <img id="togglePasswordIcon2" src="resources/icons_light/eye.png" alt="mostrar" style="width: 20px; height: 20px;">
-                        </button>
+                    <div class="form-group">
+                        <label>Confirmar contraseña *</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="confirm_password" required autocomplete="new-password">
+                            <button type="button" class="toggle-password" onclick="togglePassword('confirm_password')">
+                                <img id="togglePasswordIcon2" src="resources/icons_light/eye.png" alt="mostrar" style="width: 20px; height: 20px;">
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" class="btn-register">Registrarme</button>
                 </form>
@@ -304,7 +305,14 @@
         
         function togglePassword(fieldId) {
             const field = document.getElementById(fieldId);
-            field.type = field.type === 'password' ? 'text' : 'password';
+            const isPassword = field.type === 'password';
+            field.type = isPassword ? 'text' : 'password';
+            
+            const iconId = fieldId === 'password' ? 'togglePasswordIcon1' : 'togglePasswordIcon2';
+            const icon = document.getElementById(iconId);
+            const isDark = document.body.classList.contains('dark-mode');
+            const iconPath = isDark ? 'resources/icons_dark/' : 'resources/icons_light/';
+            icon.src = iconPath + (isPassword ? 'eye-slash.png' : 'eye.png');
         }
         
         function mostrarMensaje(mensaje, tipo) {
@@ -324,11 +332,10 @@
                 </div>
             `).join('');
             
-            // Ninguna está seleccionada por defecto (todas azules)
             document.querySelectorAll('.pref-card').forEach(card => {
                 card.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    card.classList.toggle('selected'); // Al hacer clic, se vuelve gris
+                    card.classList.toggle('selected');
                 });
             });
         }
@@ -338,7 +345,7 @@
             document.querySelectorAll('.pref-card.selected').forEach(card => {
                 selected.push(card.getAttribute('data-categoria'));
             });
-            return selected; // Devuelve las categorías que el usuario seleccionó (las grises)
+            return selected;
         }
         
         document.getElementById('selectAllBtn')?.addEventListener('click', () => {
@@ -346,50 +353,48 @@
             const allSelected = Array.from(cards).every(card => card.classList.contains('selected'));
             cards.forEach(card => {
                 if (!allSelected) {
-                    card.classList.add('selected'); // Todas grises (seleccionadas)
+                    card.classList.add('selected');
                 } else {
-                    card.classList.remove('selected'); // Todas azules (deseleccionadas)
+                    card.classList.remove('selected');
                 }
             });
         });
         
         document.getElementById('savePreferencesBtn')?.addEventListener('click', () => {
-        const preferencias = getSelectedPreferences();
-        console.log("=========================================");
-        console.log("💾 Guardando preferencias:", preferencias);
-        
-        if (temporalUserData) {
-            temporalUserData.preferencias = preferencias;
-            console.log("📦 Registrando usuario:", temporalUserData);
+            const preferencias = getSelectedPreferences();
+            console.log("=========================================");
+            console.log("💾 Guardando preferencias:", preferencias);
             
-            const resultado = registrarUsuario(temporalUserData);
-            console.log("📊 Resultado registro:", resultado);
-            
-            if (resultado.exito) {
-                console.log("✅ Usuario registrado. Intentando iniciar sesión...");
+            if (temporalUserData) {
+                temporalUserData.preferencias = preferencias;
+                console.log("📦 Registrando usuario:", temporalUserData);
                 
-                // Intentar iniciar sesión con el nuevo usuario
-                const loginResult = iniciarSesion(temporalUserData.email, temporalUserData.password);
-                console.log("📊 Resultado login:", loginResult);
+                const resultado = registrarUsuario(temporalUserData);
+                console.log("📊 Resultado registro:", resultado);
                 
-                if (loginResult.exito) {
-                    console.log("✅ Login exitoso, redirigiendo a inicio.html");
-                    window.location.href = 'inicio.html';
+                if (resultado.exito) {
+                    console.log("✅ Usuario registrado. Intentando iniciar sesión...");
+                    
+                    const loginResult = iniciarSesion(temporalUserData.email, temporalUserData.password);
+                    console.log("📊 Resultado login:", loginResult);
+                    
+                    if (loginResult.exito) {
+                        console.log("✅ Login exitoso, redirigiendo a inicio.html");
+                        window.location.href = 'inicio.html';
+                    } else {
+                        console.log("❌ Login falló:", loginResult.mensaje);
+                        mostrarMensaje("Error al iniciar sesión automáticamente. Por favor inicia sesión manualmente.", 'error');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 2000);
+                    }
                 } else {
-                    console.log("❌ Login falló:", loginResult.mensaje);
-                    mostrarMensaje("Error al iniciar sesión automáticamente. Por favor inicia sesión manualmente.", 'error');
-                    // Redirigir al login para que el usuario intente manualmente
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 2000);
+                    console.log("❌ Registro falló:", resultado.mensaje);
+                    mostrarMensaje(resultado.mensaje, 'error');
                 }
-            } else {
-                console.log("❌ Registro falló:", resultado.mensaje);
-                mostrarMensaje(resultado.mensaje, 'error');
             }
-        }
-        console.log("=========================================");
-    });
+            console.log("=========================================");
+        });
         
         document.getElementById('register-form').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -434,30 +439,25 @@
             this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);
         });
         
-        function togglePassword(fieldId) {
-            const field = document.getElementById(fieldId);
-            const isPassword = field.type === 'password';
-            field.type = isPassword ? 'text' : 'password';
-            
-            const iconId = fieldId === 'password' ? 'togglePasswordIcon1' : 'togglePasswordIcon2';
-            const icon = document.getElementById(iconId);
-            const isDark = document.body.classList.contains('dark-mode');
-            const iconPath = isDark ? 'resources/icons_dark/' : 'resources/icons_light/';
-            icon.src = iconPath + (isPassword ? 'eye-slash.png' : 'eye.png');
-        }
-
         function updatePasswordIcons() {
             const isDark = document.body.classList.contains('dark-mode');
             const iconPath = isDark ? 'resources/icons_dark/' : 'resources/icons_light/';
             const icon1 = document.getElementById('togglePasswordIcon1');
             const icon2 = document.getElementById('togglePasswordIcon2');
-            if (icon1) icon1.src = iconPath + 'eye.png';
-            if (icon2) icon2.src = iconPath + 'eye.png';
+            if (icon1 && icon1.src.includes('eye')) {
+                const isPassword = document.getElementById('password')?.type === 'password';
+                icon1.src = iconPath + (isPassword ? 'eye.png' : 'eye-slash.png');
+            }
+            if (icon2 && icon2.src.includes('eye')) {
+                const isPassword = document.getElementById('confirm_password')?.type === 'password';
+                icon2.src = iconPath + (isPassword ? 'eye.png' : 'eye-slash.png');
+            }
         }
         updatePasswordIcons();
+        
         const themeObserverReg = new MutationObserver(updatePasswordIcons);
         themeObserverReg.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-
+        
         window.togglePassword = togglePassword;
     </script>
 </body>
